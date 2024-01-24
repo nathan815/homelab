@@ -11,25 +11,26 @@
     loop_var: var_name
   with_items:
     - monitoring_prometheus_hostname
+    - monitoring_home_assistant_token
 
 - name: Delete folder {{ monitoring_folder }}
   ansible.builtin.file:
     path: "{{ monitoring_folder }}"
     state: absent
 
-- name: Create folder {{ monitoring_folder }}
+- name: Create folder {{ monitoring_folder }} exists
   ansible.builtin.file:
     path: "{{ monitoring_folder }}"
     state: directory
 
-- name: Ensure folder structure exists
+- name: Create folder structure under {{ monitoring_folder }}
   ansible.builtin.file:
     path: '{{ monitoring_folder }}/{{ item.path }}'
     state: directory
   with_community.general.filetree: '{{ role_path }}/templates'
   when: item.state == 'directory'
 
-- name: Ensure files are populated from templates
+- name: Render template files in {{ monitoring_folder }}
   ansible.builtin.template:
     src: '{{ item.src }}'
     dest: "{{ monitoring_folder }}/{{ item.path | regex_replace('\\.j2$', '') }}"

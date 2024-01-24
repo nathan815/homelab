@@ -18,12 +18,14 @@ services:
     ports:
       - "{{ monitoring_grafana_port }}:3000"
     restart: unless-stopped
+    depends_on:
+      - prometheus
     environment:
       - GF_SECURITY_ADMIN_USER={{ monitoring_grafana_admin_username }}
       - GF_SECURITY_ADMIN_PASSWORD={{ monitoring_grafana_admin_password }}
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
-      #- grafana_data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
 
 volumes:
   prom_data:
