@@ -1,0 +1,58 @@
+---
+- name: "Verify that required string variables are defined"
+  assert:
+    that: 
+      - "{{ var_name }} is defined"
+      - "{{ var_name }} | length > 0"
+      - "{{ var_name }} != None"
+    fail_msg: "{{ var_name }} needs to be set for the role to work"
+    success_msg: "Required variable {{ var_name }} is defined"
+  loop_control:
+    loop_var: var_name
+  with_items:
+    - monitoring_prometheus_hostname
+
+- name: Delete folder {{ monitoring_folder }}
+  ansible.builtin.file:
+    path: "{{ monitoring_folder }}"
+    state: absent
+
+- name: Create folder {{ monitoring_folder }}
+  ansible.builtin.file:
+    path: "{{ monitoring_folder }}"
+    state: directory
+
+- name: Ensure folder structure exists
+  ansible.builtin.file:
+    path: '{{ monitoring_folder }}/{{ item.path }}'
+    state: directory
+  with_community.general.filetree: '{{ role_path }}/templates'
+  when: item.state == 'directory'
+
+- name: Ensure files are populated from templates
+  ansible.builtin.template:
+    src: '{{ item.src }}'
+    dest: "{{ monitoring_folder }}/{{ item.path | regex_replace('\\.j2$', '') }}"
+    force: true
+  with_community.general.filetree: '{{ role_path }}/templates'
+  when: item.state == 'file'
+
+- name: Stop docker compose services
+  command: "docker compose down"
+  args:
+    chdir: "{{ monitoring_folder }}"
+  register: output
+
+- name: Show docker compose down output
+  ansible.builtin.debug:
+    var: output
+
+- name: Start docker compose services
+  command: "docker compose up -d --quiet-pull"
+  args:
+    chdir: "{{ monitoring_folder }}"
+  register: output
+
+- name: Show docker compose up output
+  ansible.builtin.debug:
+    var: output

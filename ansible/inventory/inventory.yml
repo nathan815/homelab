@@ -1,0 +1,12 @@
+---
+pi:
+  hosts:
+    pi01:
+      ansible_ssh_host: pi01.lan
+    pi02:
+      ansible_ssh_host: pi02.lan
+
+ungrouped:
+  hosts:
+    homeassistant:
+      ansible_ssh_host: homeassistant.lan

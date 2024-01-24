@@ -1,0 +1,5 @@
+---
+- name: Install cockpit
+  ansible.builtin.apt:
+    name: cockpit
+    state: present

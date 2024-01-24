@@ -1,0 +1,14 @@
+---
+wg_folder: "/home/{{ ansible_user }}/wireguard"
+wg_lang: en  # (Supports: en, ru, tr, no, pl, fr, de)
+wg_port: 51820
+wg_password: ""
+wg_default_address: ""
+wg_default_dns: ""
+wg_mtu: ""
+wg_allowed_ips: ""
+wg_persistent_keepalive: ""
+wg_pre_up: ""
+wg_post_up: ""
+wg_pre_down: ""
+wg_post_down: ""

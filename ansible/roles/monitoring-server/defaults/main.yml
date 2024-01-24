@@ -1,0 +1,10 @@
+---
+monitoring_folder: "/home/{{ ansible_user }}/monitoring"
+monitoring_prometheus_port: 3001
+monitoring_prometheus_server_url: "http://{{ monitoring_prometheus_hostname }}:{{ monitoring_prometheus_port }}"
+monitoring_grafana_port: 3000
+monitoring_grafana_admin_username: admin
+monitoring_grafana_admin_password: admin
+monitoring_prometheus_targets:
+  - localhost:9100
+  

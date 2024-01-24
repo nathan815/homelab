@@ -1,0 +1,31 @@
+- hosts: pi
+  become: true
+  vars:
+    pip_install_packages:
+      - name: docker
+    docker_users:
+      - "{{ ansible_user }}"
+    node_exporter_arch_map:
+      armv7l: armv7
+      aarch64: arm64
+    node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
+    - geerlingguy.node_exporter
+    - cockpit
+
+- hosts: pi01
+  vars:
+    wg_host: "{{ ansible_hostname }}"
+    monitoring_prometheus_hostname: pi01.lan
+    monitoring_prometheus_targets:
+      - pi01.lan:9100
+      - pi02.lan:9100
+  roles:
+    - monitoring-server
+    - wireguard-vpn
+    - dns-services
+    - nginx
+    - plex
+    - internet-monitor
