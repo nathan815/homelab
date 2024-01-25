@@ -1,23 +1,32 @@
 ---
+networks:
+  front-tier:
+    name: monitoring-front-tier
+  back-tier:
+    name: monitoring-back-tier
+
 services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-admin-api'
     ports:
       - "{{ monitoring_prometheus_port }}:9090"
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./prometheus:/etc/prometheus
       - prom_data:/prometheus
+    networks:
+      - back-tier
 
   grafana:
     image: grafana/grafana
     container_name: grafana
     ports:
       - "{{ monitoring_grafana_port }}:3000"
-    restart: unless-stopped
+    restart: always
     depends_on:
       - prometheus
     environment:
@@ -26,6 +35,38 @@ services:
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
       - grafana_data:/var/lib/grafana
+    networks:
+      - back-tier
+      - front-tier
+
+  internet_ping:
+    image: prom/blackbox-exporter:latest
+    container_name: internet-ping
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./blackbox/config:/config
+    expose:
+      - 9115
+    ports:
+      - 9115:9115
+    tty: true
+    stdin_open: true
+    command:
+      - '--config.file=/config/blackbox.yml'
+    networks:
+      - back-tier
+
+  internet_speedtest:
+    image: miguelndecarvalho/speedtest-exporter:latest
+    container_name: internet-speedtest
+    restart: always
+    expose:
+      - 9798
+    ports:
+      - 9798:9798
+    networks:
+      - back-tier
 
 volumes:
   prom_data:

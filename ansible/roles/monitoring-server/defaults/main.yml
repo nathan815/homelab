@@ -1,10 +1,19 @@
 ---
 monitoring_folder: "/home/{{ ansible_user }}/monitoring"
+monitoring_prometheus_hostname: "{{ monitoring_hostname }}"
 monitoring_prometheus_port: 3001
 monitoring_prometheus_server_url: "http://{{ monitoring_prometheus_hostname }}:{{ monitoring_prometheus_port }}"
+monitoring_grafana_hostname: "{{ monitoring_hostname }}"
 monitoring_grafana_port: 3000
 monitoring_grafana_admin_username: admin
 monitoring_grafana_admin_password: admin
 monitoring_prometheus_targets:
   - localhost:9100
-  
+
+# Internet Monitoring
+monitoring_internet_speedtest_interval: 10m
+monitoring_internet_ping_interval: 5s
+monitoring_internet_ping_hosts:
+  - http://www.google.com/;google.com
+  - https://github.com/;github.com
+  - 1.1.1.1;CF DNS (1.1.1.1)

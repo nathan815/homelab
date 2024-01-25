@@ -13,7 +13,7 @@ alerting:
 
 scrape_configs:
 
-- job_name: prometheus
+- job_name: nodehealth
   honor_timestamps: true
   scrape_interval: 15s
   scrape_timeout: 10s
@@ -25,10 +25,39 @@ scrape_configs:
     - {{ host }}
 {% endfor %}
 
-- job_name: home_assistant
+- job_name: homeassistant_sensors
   scrape_interval: 30s
   metrics_path: /api/prometheus
   bearer_token: "{{ monitoring_home_assistant_token }}"
   scheme: http
   static_configs:
     - targets: ['hass.lan:8123']
+
+- job_name: internet_speedtest
+  metrics_path: /metrics
+  scrape_interval: {{ monitoring_internet_speedtest_interval }}
+  scrape_timeout: 60s  # running speedtest needs time to complete
+  static_configs:
+    - targets: ['internet_speedtest:9798']
+
+- job_name: internet_ping
+  metrics_path: /probe
+  scrape_interval: {{ monitoring_internet_ping_interval }}
+  params:
+    module: [http_2xx]  # Look for a HTTP 200 response.
+  file_sd_configs:
+    - files:
+        - pinghosts.yml
+  relabel_configs:
+    - source_labels: [__address__]
+      regex: '(.*);(.*)'  # first is the url, thus unique for instance
+      target_label: instance
+      replacement: $1
+    - source_labels: [__address__]
+      regex: '(.*);(.*)'  # second is humanname to use in charts
+      target_label: humanname
+      replacement: $2
+    - source_labels: [instance]
+      target_label: __param_target
+    - target_label: __address__
+      replacement: internet_ping:9115  # The blackbox exporter's real hostname:port.
