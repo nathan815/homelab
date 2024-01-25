@@ -17,15 +17,21 @@
 
 - hosts: pi01
   vars:
-    wg_host: "{{ ansible_hostname }}"
+    wg_external_host: "{{ lan_external_domain }}"
+    wg_external_port: "{{ secrets.wireguard_external_port }}"
+    wg_default_dns: "{{ lan_dns_servers }}"
+    wg_admin_password: "{{ secrets.wireguard_admin_password }}"
+    wg_allowed_ips:
+      - "{{ lan_network }}"
+    monitoring_home_assistant_token: "{{ secrets.monitoring_home_assistant_token }}"
     monitoring_hostname: pi01.lan
     monitoring_prometheus_targets:
       - pi01.lan:9100
       - pi02.lan:9100
       - hass.lan:9100
   roles:
+    - dns-services
     - monitoring-server
     - wireguard-vpn
-    - dns-services
     - nginx
     - plex

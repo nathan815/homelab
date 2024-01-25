@@ -10,7 +10,8 @@
   loop_control:
     loop_var: var_name
   with_items:
-    - wg_host
+    - wg_external_host
+    - wg_admin_password
 
 - name: Ensure folder {{ wg_folder }} exists
   ansible.builtin.file:
@@ -25,6 +26,13 @@
     dest: "{{ wg_folder }}/docker-compose.yml"
     owner: "{{ ansible_user }}"
     mode: '0644'
+
+- name: Stop docker compose services
+  command: "docker compose down"
+  args:
+    chdir: "{{ wg_folder }}"
+  register: output
+  ignore_errors: true
 
 - name: Start docker compose services
   command: "docker compose up -d --quiet-pull"
