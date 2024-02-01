@@ -26,8 +26,11 @@
 
 - hosts: pi01
   roles:
-    - role: dns-services
-      tags: dns
+    - role: adguardhome
+      tags: adguardhome
+      vars:
+        adguardhome_username: "{{ secrets.adguardhome_username }}"
+        adguardhome_password: "{{ secrets.adguardhome_password }}"
 
     - role: monitoring-server
       tags: monitoring

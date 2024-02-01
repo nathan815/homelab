@@ -1,0 +1,11 @@
+---
+- name: Reload AdGuard Home config
+  command: "docker exec -it adguardhome /bin/sh -c '../AdGuardHome -s reload'"
+  args:
+    chdir: "{{ adguardhome_folder }}"
+  register: output
+  ignore_errors: true
+
+- name: Show reload output
+  debug:
+    var: output
