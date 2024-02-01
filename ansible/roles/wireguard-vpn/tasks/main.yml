@@ -10,6 +10,7 @@
   loop_control:
     loop_var: var_name
   with_items:
+    - wg_folder
     - wg_external_host
     - wg_admin_password
 

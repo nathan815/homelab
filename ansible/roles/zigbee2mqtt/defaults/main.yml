@@ -1,0 +1,7 @@
+---
+zigbee_folder: /home/{{ ansible_user }}/zigbee2mqtt
+zigbee_data_folder: "{{ zigbee_folder }}/data"
+zigbee_usb_device_path: /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_b0e008b55445ed118bc5d18f0a86e0b4-if00-port0
+zigbee_ui_port: 8080
+zigbee_redeploy: false
+zigbee_mqtt_server: "mqtt://homeassistant.lan:1883"

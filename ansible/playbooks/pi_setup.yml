@@ -32,7 +32,7 @@
     - role: monitoring-server
       tags: monitoring
       vars:
-        monitoring_home_assistant_token: "{{ secrets.monitoring_home_assistant_token }}"
+        monitoring_home_assistant_token: "{{ secrets.home_assistant_token }}"
         monitoring_hostname: pi01.lan
         monitoring_prometheus_targets:
           - pi01.lan:9100

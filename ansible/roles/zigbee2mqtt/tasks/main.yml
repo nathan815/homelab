@@ -1,0 +1,81 @@
+---
+- name: Verify that required string variables are defined
+  assert:
+    that: 
+      - "{{ var_name }} is defined"
+      - "{{ var_name }} | length > 0"
+      - "{{ var_name }} != None"
+    fail_msg: "{{ var_name }} needs to be set for the role to work"
+    success_msg: "Required variable {{ var_name }} is defined"
+  loop_control:
+    loop_var: var_name
+  with_items:
+    - zigbee_folder
+    - zigbee_mqtt_user
+    - zigbee_mqtt_password
+    - zigbee_mqtt_server
+
+- name: Ensure folders exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: '0755'
+  with_items:
+    - "{{ zigbee_folder }}"
+    - "{{ zigbee_data_folder }}"
+
+- name: Make copy of coordinator_backup.json
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ zigbee_data_folder }}/coordinator_backup.json"
+    dest: "{{ zigbee_data_folder }}/coordinator_backup_copy.json"
+  when: zigbee_change_channel
+
+- name: Render and copy docker-compose.yml
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ ansible_user }}"
+    mode: '0644'
+  with_items:
+    - src: docker-compose.yml.j2
+      dest: "{{ zigbee_folder }}/docker-compose.yml"
+    - src: configuration.yml.j2
+      dest: "{{ zigbee_data_folder }}/configuration.yaml"
+
+- name: Stop docker compose services
+  command: "docker compose down"
+  args:
+    chdir: "{{ zigbee_folder }}"
+  register: output
+  when: zigbee_redeploy
+
+- name: Show docker compose down output
+  ansible.builtin.debug:
+    var: output
+  when: zigbee_redeploy
+
+- name: Remove coordinator_backup.json
+  ansible.builtin.file:
+    path: "{{ zigbee_data_folder }}/coordinator_backup.json"
+    state: absent
+  when: zigbee_change_channel
+
+- name: Start docker compose services
+  command: "docker compose up -d --quiet-pull"
+  args:
+    chdir: "{{ zigbee_folder }}"
+  register: output
+
+- name: Show docker compose up output
+  ansible.builtin.debug:
+    var: output
+
+- name: Wait for zigbee2mqtt UI to be available
+  wait_for:
+    host: localhost
+    port: "{{ zigbee_ui_port }}"
+    delay: 5
+    timeout: 30
+    state: started

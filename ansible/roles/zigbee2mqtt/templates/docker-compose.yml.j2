@@ -1,0 +1,19 @@
+---
+version: '2'
+
+name: zigbee2mqtt
+
+services:
+    zigbee2mqtt:
+        image: koenkk/zigbee2mqtt
+        container_name: zigbee2mqtt
+        restart: always
+        devices:
+            - {{ zigbee_usb_device_path }}:/dev/ttyUSB0
+        ports:
+            - {{ zigbee_ui_port }}:8080
+        volumes:
+            - {{ zigbee_data_folder }}:/app/data
+            - /run/udev:/run/udev:ro
+        environment:
+            - TZ=America/New_York

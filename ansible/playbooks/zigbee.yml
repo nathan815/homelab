@@ -1,0 +1,8 @@
+- hosts: pi01
+  roles:
+    - role: zigbee2mqtt
+      vars:
+        zigbee_mqtt_user: "{{ secrets.mqtt_user }}"
+        zigbee_mqtt_password: "{{ secrets.mqtt_password }}"
+        zigbee_change_channel: "{{ change_channel | default(false) }}"
+        zigbee_redeploy: "{{ (redeploy | default(false)) or zigbee_change_channel }}"
