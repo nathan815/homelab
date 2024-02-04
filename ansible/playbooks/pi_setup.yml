@@ -57,3 +57,6 @@
 
     - role: plex
       tags: plex
+
+    - role: upsnap
+      tags: upsnap
