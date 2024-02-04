@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wake On LAN - Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            padding: 10px;
+            background-color: #f1f1f1;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Wake On LAN - Result</h2>
+
+    <p><strong>Name:</strong> {{ computer_info.name }}</p>
+    <p><strong>IP Address:</strong> {{ computer_info.ip }}</p>
+    <p><strong>MAC Address:</strong> {{ computer_info.mac }}</p>
+
+    {% if error %}
+        <h5 style="color: red;">{{ error }}</h5>
+    {% endif %}
+
+    <pre>{{ output }}</pre>
+
+    <button onclick="window.location.href='{{ url_for('index') }}'">Go Back</button>
+
+
+</body>
+</html>

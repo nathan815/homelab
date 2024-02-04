@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wake On LAN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .shortcut-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .shortcut-item {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Wake On LAN</h2>
+
+    <form action="/wakeonlan" method="post">
+        <label for="mac">MAC Address:</label>
+        <input type="text" id="mac" name="mac" required>
+
+        <label for="ip">IP Address:</label>
+        <input type="text" id="ip" name="ip">
+
+        <button type="submit">Wake Up</button>
+    </form>
+
+    <h3>Computer Shortcuts:</h3>
+    <ul class="shortcut-list">
+        {% for shortcut in computer_shortcuts %}
+            <li class="shortcut-item">
+                <button class="shortcut-btn" data-mac="{{ shortcut.mac }}" data-ip="{{ shortcut.ip if shortcut.ip else '' }}">
+                    {{ shortcut.name }} - {{ shortcut.mac }} (IP: {{ shortcut.ip }})
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const shortcutButtons = document.querySelectorAll('.shortcut-btn');
+
+            shortcutButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const macInput = document.getElementById('mac');
+                    const ipInput = document.getElementById('ip');
+
+                    macInput.value = this.getAttribute('data-mac');
+                    const ip = this.getAttribute('data-ip');
+                    if (ip) {
+                        ipInput.value = ip;
+                    }
+
+                    // Optionally, you can submit the form automatically
+                    // document.querySelector('form').submit();
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
