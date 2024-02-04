@@ -12,6 +12,7 @@
   with_items:
     - adguardhome_username
     - adguardhome_password
+    - adguardhome_ip
 
 - include_tasks: deploy.yml
 
