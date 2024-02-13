@@ -25,6 +25,9 @@ services:
             #- 6060:6060/tcp # Debugging profiles
         networks:
             - dns_network
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider "http://localhost:80" || exit 1
+            interval: 10s
 
 networks:
   dns_network:

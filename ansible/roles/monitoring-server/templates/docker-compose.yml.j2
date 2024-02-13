@@ -20,6 +20,9 @@ services:
       - prom_data:/prometheus
     networks:
       - back-tier
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider "http://localhost:9090/-/healthy" || exit 1
+      interval: 10s
 
   grafana:
     image: grafana/grafana
@@ -38,6 +41,9 @@ services:
     networks:
       - back-tier
       - front-tier
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider "http://localhost:3000/api/health" || exit 1
+      interval: 10s
 
   internet_ping:
     image: prom/blackbox-exporter:latest
