@@ -1,1 +1,46 @@
 ---
+- name: Ensure folder {{ plex_folder }} exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: '0755'
+  with_items:
+    - "{{ plex_folder }}"
+    - "{{ plex_config_folder }}"
+
+- name: Render and copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ plex_folder }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    mode: '0644'
+
+- name: Stop docker compose services
+  command: "docker compose down"
+  args:
+    chdir: "{{ plex_folder }}"
+  register: output
+  ignore_errors: true
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    var: output
+
+- name: Start docker compose services
+  command: "docker compose up -d --quiet-pull"
+  args:
+    chdir: "{{ plex_folder }}"
+  register: output
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    var: output
+
+- name: Wait for the service to start
+  wait_for:
+    port: "{{ plex_port }}"
+    delay: 5
+    timeout: 300
+    state: started
+  ignore_errors: true

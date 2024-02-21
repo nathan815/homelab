@@ -1,0 +1,28 @@
+---
+version: '3.5'
+
+services:
+    plex:
+        image: lscr.io/linuxserver/plex:latest
+        container_name: plex
+        restart: unless-stopped
+        network_mode: host
+
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - VERSION=docker
+            - TZ=America/Detroit
+{% if plex_claim_token|default("") %}
+            - PLEX_CLAIM="{{ plex_claim_token }}"
+{% endif %}
+
+        volumes:
+            - "{{ plex_config_folder }}:/config"
+            - "{{ plex_tv_folder }}:/tv"
+            - "{{ plex_movies_folder }}:/movies"
+        tmpfs:
+            - /transcode:size=1G
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider "http://localhost:{{ plex_port }}/identity"
+            interval: 30s
