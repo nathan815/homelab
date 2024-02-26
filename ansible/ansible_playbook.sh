@@ -3,7 +3,7 @@
 IMAGE=ansible:latest
 
 docker run -it -v $PWD:/work -v ~/.ssh:/root/.ssh "$IMAGE" \
-    ansible-playbook -e ansible_user=nathan -e @secrets.yml "$@"
+    ansible-playbook -e @secrets.yml "$@"
 
 # Examples
 # ./run_playbook.sh pi_setup.yml

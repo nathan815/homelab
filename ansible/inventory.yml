@@ -3,10 +3,7 @@ pi:
   hosts:
     pi01:
       ansible_ssh_host: pi01.lan
+      ansible_ssh_user: nathan
     pi02:
       ansible_ssh_host: pi02.lan
-
-ungrouped:
-  hosts:
-    homeassistant:
-      ansible_ssh_host: homeassistant.lan
+      ansible_ssh_user: pi
