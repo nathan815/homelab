@@ -62,6 +62,9 @@ services:
       - '--config.file=/config/blackbox.yml'
     networks:
       - back-tier
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9115 || exit 1
+      interval: 30s
 
   internet_speedtest:
     image: miguelndecarvalho/speedtest-exporter:latest
