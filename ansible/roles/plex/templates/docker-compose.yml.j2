@@ -19,8 +19,7 @@ services:
 
         volumes:
             - "{{ plex_config_folder }}:/config"
-            - "{{ plex_tv_folder }}:/tv"
-            - "{{ plex_movies_folder }}:/movies"
+            - /media/plexmedia01:/Media
         tmpfs:
             - /transcode:size=1G
         healthcheck:

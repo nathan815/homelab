@@ -3,5 +3,3 @@ plex_claim_token: "" # specify as -i plex_claim_token= during initial install
 plex_folder: "/home/{{ ansible_user }}/plex"
 plex_port: 32400
 plex_config_folder: "{{ plex_folder }}/config"
-plex_tv_folder: "/media/usbdriveplex/TV"
-plex_movies_folder: "/media/usbdriveplex/Movies"
