@@ -1,0 +1,15 @@
+# AdGuardHome is my home network DNS server. All devices on the network use it for DNS resolution.
+#
+# Notes:
+#   1) Pass -e adguardhome_restart true to force restart of the service.
+#   2) Pass -e adguardhome_overwrite_config true to force overwrite of the configuration file.
+#       WARNING: This will result in loss of any changes made through the AdGuardHome web interface.
+#
+
+- hosts: pi01
+  roles:
+    - role: adguardhome
+      tags: adguardhome
+      vars:
+        adguardhome_username: "{{ secrets.adguardhome_username }}"
+        adguardhome_password: "{{ secrets.adguardhome_password }}"

@@ -1,0 +1,25 @@
+- hosts: pi
+  become: true
+  roles:
+    - role: geerlingguy.pip
+      tags: [base, deps]
+      vars:
+        pip_install_packages:
+          - name: docker
+
+    - role: geerlingguy.docker
+      tags: [base, deps]
+      vars:
+        docker_users:
+          - "{{ ansible_user }}"
+
+    - role: geerlingguy.node_exporter
+      tags: [base, node-exporter]
+      vars:
+        node_exporter_arch_map:
+          armv7l: armv7
+          aarch64: arm64
+        node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+
+    - role: cockpit
+      tags: [base, mgmt-tools, cockpit]

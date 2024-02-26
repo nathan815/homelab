@@ -1,0 +1,31 @@
+
+- hosts: pi01
+  roles:
+    - role: monitoring-server
+      tags: monitoring
+      vars:
+        monitoring_home_assistant_token: "{{ secrets.home_assistant_token }}"
+        monitoring_hostname: pi01.lan
+        monitoring_prometheus_targets:
+          - pi01.lan:9100
+          - pi02.lan:9100
+          - hass.lan:9100
+
+    - role: wireguard-vpn
+      tags: wireguard
+      vars:
+        wg_external_host: "{{ lan_external_domain }}"
+        wg_external_port: "{{ secrets.wireguard_external_port }}"
+        wg_default_dns: "{{ lan_dns_servers }}"
+        wg_admin_password: "{{ secrets.wireguard_admin_password }}"
+        wg_allowed_ips:
+          - "{{ lan_network }}"
+
+    - role: nginx-proxy
+      tags: nginx
+
+    - role: plex
+      tags: plex
+
+    - role: upsnap
+      tags: upsnap
