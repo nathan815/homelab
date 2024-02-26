@@ -13,10 +13,16 @@
     src: docker-compose.yml.j2
     dest: "{{ adguardhome_folder }}/docker-compose.yml"
 
-# - name: Render and copy AdGuardHome.yml
-#   ansible.builtin.template:
-#     src: AdGuardHome.yml.j2
-#     dest: "{{ adguardhome_config_folder}}/AdGuardHome.yaml"
+- name: Check if AdGuardHome.yml exists
+  stat:
+    path: "{{ adguardhome_config_folder}}/AdGuardHome.yaml"
+    register: adguardhome_config_file_stat
+
+- name: Render and copy AdGuardHome.yml if it does not exist or if adguardhome_overwrite_config is true
+  ansible.builtin.template:
+    src: AdGuardHome.yml.j2
+    dest: "{{ adguardhome_config_folder}}/AdGuardHome.yaml"
+  when: adguardhome_config_file_stat.stat.exists == false or adguardhome_overwrite_config|default(false)
 
 - name: Stop docker compose services
   command: "docker compose down"
