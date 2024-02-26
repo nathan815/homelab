@@ -1,0 +1,62 @@
+---
+- name: Ensure folder {{ nginx_folder }} exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: '0755'
+  with_items:
+    - "{{ nginx_folder }}"
+
+- name: Copy files for nginx container
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ nginx_folder }}/{{ item }}"
+    owner: "{{ ansible_user }}"
+    mode: '0644'
+  with_items:
+    - docker-compose.yml
+    - nginx.conf
+
+- name: docker compose down
+  command: "docker compose down"
+  args:
+    chdir: "{{ nginx_folder }}"
+  register: output
+  ignore_errors: true
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    var: output
+
+- name: docker compose up -d --quiet-pull
+  command: "docker compose up -d --quiet-pull"
+  args:
+    chdir: "{{ nginx_folder }}"
+  register: output
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    var: output
+
+- name: Wait for nginx to start
+  wait_for:
+    port: 80
+    delay: 5
+    timeout: 30
+    state: started
+  ignore_errors: true
+  register: wait_output
+
+- name: Fetch container logs if nginx did not start
+  command: "docker logs nginx-proxy"
+  args:
+    chdir: "{{ nginx_folder }}"
+  register: logs
+  ignore_errors: true
+  when: wait_output.failed
+
+- name: Show container logs if nginx did not start
+  ansible.builtin.debug:
+    var: logs
+  when: wait_output.failed

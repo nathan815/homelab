@@ -1,0 +1,17 @@
+---
+services:
+  nginx-proxy:
+    image: nginx
+    container_name: nginx-proxy
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+    ports:
+      - 80:80
+    healthcheck:
+      test: curl -s http://localhost:80
+      interval: 30s
+      timeout: 5s
+      start_period: 30s

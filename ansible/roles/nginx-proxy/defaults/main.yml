@@ -1,0 +1,2 @@
+---
+nginx_folder: "/home/{{ ansible_user }}/nginx-proxy"
