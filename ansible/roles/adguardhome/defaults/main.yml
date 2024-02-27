@@ -2,7 +2,7 @@
 adguardhome_web_ui_port: 4000
 adguardhome_install_web_ui_port: 4001
 adguardhome_restart: false # Stop and start the container
-adguardhome_folder: /home/{{ ansible_user }}/adguardhome
+adguardhome_folder: /home/{{ ansible_ssh_user }}/adguardhome
 adguardhome_work_folder: "{{ adguardhome_folder }}/work"
 adguardhome_config_folder: "{{ adguardhome_folder }}/config"
 adguardhome_ip: "{{ ansible_default_ipv4.address }}"

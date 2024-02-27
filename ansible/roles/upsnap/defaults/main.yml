@@ -1,4 +1,4 @@
 ---
-upsnap_folder: /home/{{ ansible_user }}/upsnap
+upsnap_folder: /home/{{ ansible_ssh_user }}/upsnap
 upsnap_data_folder: "{{ upsnap_folder }}/data"
 upsnap_ui_port: 9000

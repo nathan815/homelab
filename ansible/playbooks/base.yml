@@ -11,7 +11,7 @@
       tags: [base, deps]
       vars:
         docker_users:
-          - "{{ ansible_user }}"
+          - "{{ ansible_ssh_user }}"
 
     - role: geerlingguy.node_exporter
       tags: [base, node-exporter]

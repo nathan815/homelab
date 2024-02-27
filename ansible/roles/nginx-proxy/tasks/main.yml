@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ ansible_user }}"
+    owner: "{{ ansible_ssh_user }}"
     mode: '0755'
   with_items:
     - "{{ nginx_folder }}"
@@ -12,7 +12,7 @@
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ nginx_folder }}/{{ item }}"
-    owner: "{{ ansible_user }}"
+    owner: "{{ ansible_ssh_user }}"
     mode: '0644'
   with_items:
     - docker-compose.yml

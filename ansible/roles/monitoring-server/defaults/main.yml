@@ -1,5 +1,5 @@
 ---
-monitoring_folder: "/home/{{ ansible_user }}/monitoring"
+monitoring_folder: "/home/{{ ansible_ssh_user }}/monitoring"
 monitoring_prometheus_hostname: "{{ monitoring_hostname }}"
 monitoring_prometheus_port: 3001
 monitoring_prometheus_server_url: "http://{{ monitoring_prometheus_hostname }}:{{ monitoring_prometheus_port }}"

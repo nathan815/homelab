@@ -1,5 +1,5 @@
 ---
-wg_folder: "/home/{{ ansible_user }}/wireguard"
+wg_folder: "/home/{{ ansible_ssh_user }}/wireguard"
 wg_lang: en  # (Supports: en, ru, tr, no, pl, fr, de)
 wg_external_host: ""
 wg_external_port: 51820
