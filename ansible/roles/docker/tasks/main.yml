@@ -1,0 +1,6 @@
+---
+- ansible.builtin.shell: curl -sSL https://get.docker.com | sh
+  become: true
+
+- ansible.builtin.shell: usermod -aG docker "{{ ansible_ssh_user }}"
+  become: true

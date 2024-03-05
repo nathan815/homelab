@@ -1,4 +1,4 @@
-- hosts: pi
+- hosts: all
   become: true
   roles:
     - role: geerlingguy.pip
@@ -7,11 +7,14 @@
         pip_install_packages:
           - name: docker
 
-    - role: geerlingguy.docker
-      tags: [base, deps]
-      vars:
-        docker_users:
-          - "{{ ansible_ssh_user }}"
+    - role: docker
+    # - role: geerlingguy.docker
+    #   tags: [base, deps]
+    #   vars:
+    #     docker_apt_arch: arm64
+    #     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
+    #     docker_users:
+    #       - "{{ ansible_ssh_user }}"
 
     - role: geerlingguy.node_exporter
       tags: [base, node-exporter]
