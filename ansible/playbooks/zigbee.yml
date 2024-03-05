@@ -1,4 +1,6 @@
-- hosts: pi01
+# Running Zigbee2MQTT on the OctoPrint Pi since it is located centrally
+
+- hosts: octoprint
   roles:
     - role: zigbee2mqtt
       vars:
