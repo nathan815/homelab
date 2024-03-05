@@ -1,5 +1,0 @@
----
-- hosts: pi02
-  roles:
-    - role: octoprint
-      tags: octoprint

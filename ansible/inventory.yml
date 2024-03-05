@@ -4,6 +4,7 @@ pi:
     pi01:
       ansible_ssh_host: pi01.lan
       ansible_ssh_user: nathan
-    pi02:
-      ansible_ssh_host: pi02.lan
-      ansible_ssh_user: pi
+    octoprint:
+      ansible_ssh_host: octoprint.lan
+      ansible_ssh_user: admin
+      ansible_become_password: "{{ secrets.octoprint_admin_sudo_password }}"
