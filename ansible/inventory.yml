@@ -1,5 +1,5 @@
 ---
-pi:
+all:
   hosts:
     pi01:
       ansible_ssh_host: pi01.lan
@@ -8,3 +8,20 @@ pi:
       ansible_ssh_host: octoprint.lan
       ansible_ssh_user: admin
       ansible_become_password: "{{ secrets.octoprint_admin_sudo_password }}"
+    proxmox01:
+      ansible_ssh_host: proxmox.lan
+      ansible_ssh_user: root
+
+pi:
+  hosts:
+    pi01:
+    octoprint:
+
+docker-hosts:
+  hosts:
+    pi01:
+    octoprint:
+
+proxmox:
+  hosts:
+    proxmox01:

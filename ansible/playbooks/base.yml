@@ -1,13 +1,29 @@
 - hosts: all
   become: true
   roles:
+    - role: geerlingguy.node_exporter
+      tags: [node-exporter]
+      vars:
+        node_exporter_arch_map:
+          armv7l: armv7
+          aarch64: arm64
+          x86_64: amd64
+        node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+
+    - role: cockpit
+      tags: [mgmt-tools, cockpit]
+
+- hosts: docker-hosts
+  become: true
+  roles:
     - role: geerlingguy.pip
-      tags: [base, deps]
+      tags: [pip, docker]
       vars:
         pip_install_packages:
           - name: docker
 
     - role: docker
+      tags: [docker]
     # - role: geerlingguy.docker
     #   tags: [base, deps]
     #   vars:
@@ -15,14 +31,3 @@
     #     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
     #     docker_users:
     #       - "{{ ansible_ssh_user }}"
-
-    - role: geerlingguy.node_exporter
-      tags: [base, node-exporter]
-      vars:
-        node_exporter_arch_map:
-          armv7l: armv7
-          aarch64: arm64
-        node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
-
-    - role: cockpit
-      tags: [base, mgmt-tools, cockpit]
