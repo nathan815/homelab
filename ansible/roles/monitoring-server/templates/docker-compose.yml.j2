@@ -35,6 +35,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER={{ monitoring_grafana_admin_username }}
       - GF_SECURITY_ADMIN_PASSWORD={{ monitoring_grafana_admin_password }}
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
       - grafana_data:/var/lib/grafana
