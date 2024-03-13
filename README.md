@@ -4,6 +4,21 @@ My home is becoming smarter day by day with the help of technology. I'm using th
 
 https://trello.com/b/16M8tM5F/smart-home-homelab
 
+## Services
+
+The services I'm currently locally running include:
+
+- Home Assistant
+- Plex Media Server
+- AdGuardHome - DNS server which blocks ads network wide. Similar to pihole.
+- WireGuard VPN
+- Monitoring - Grafana & Prometheus
+- Continuous Internet Monitoring (Speedtest + Uptime) with Prometheus
+- NGINX reverse proxy - enables accessing all my local services at friendly domain names on port 80/443
+- UpSnap - WakeOnLan tool
+- Zigbee2MQTT
+- Octoprint
+
 ## Hardware
 
 
@@ -30,21 +45,6 @@ Each of these machines have some base software installed (see ansible/playbooks/
 
 * Cockpit (management web UI)
 * Prometheus Node Exporter (system monitoring - CPU/mem/disk/network/etc.)
-
-## Services
-
-The services I'm currently locally running include:
-
-- Home Assistant
-- Plex Media Server
-- AdGuardHome - DNS server which blocks ads network wide. Similar to pihole.
-- WireGuard VPN
-- Monitoring - Grafana & Prometheus
-- Continuous Internet Monitoring (Speedtest + Uptime) with Prometheus
-- NGINX reverse proxy - enables accessing all my local services at friendly domain names on port 80/443
-- UpSnap - WakeOnLan tool
-- Zigbee2MQTT
-- Octoprint
 
 ## Ansible
 
