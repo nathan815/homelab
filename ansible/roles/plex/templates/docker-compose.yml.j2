@@ -25,3 +25,12 @@ services:
         healthcheck:
             test: wget --no-verbose --tries=1 --spider "http://localhost:{{ plex_port }}/identity"
             interval: 30s
+
+    plex-prom-exporter:
+        image: docker.io/nathan815/prometheus-plex-exporter
+        container_name: plex_prom_exporter
+        ports:
+            - 8000:9000/tcp
+        environment:
+            PLEX_SERVER: "http://plex:{{ plex_port }}"
+            PLEX_TOKEN: "{{ plex_admin_token }}"

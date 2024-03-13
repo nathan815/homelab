@@ -1,6 +1,9 @@
 ---
 - hosts: pi01
   roles:
+    - role: nginx-proxy
+      tags: nginx
+
     - role: monitoring-server
       tags: monitoring
       vars:
@@ -22,11 +25,10 @@
         wg_allowed_ips:
           - "{{ lan_network }}"
 
-    - role: nginx-proxy
-      tags: nginx
-
     - role: plex
       tags: plex
+      vars:
+        plex_admin_token: "{{ secrets.plex_admin_token }}"
 
     - role: upsnap
       tags: upsnap
