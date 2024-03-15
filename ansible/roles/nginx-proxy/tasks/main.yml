@@ -7,16 +7,29 @@
     mode: '0755'
   with_items:
     - "{{ nginx_folder }}"
+    - "{{ nginx_folder_temp }}"
 
-- name: Copy files for nginx container
+- name: Copy files for nginx container to temp folder
   ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ nginx_folder }}/{{ item }}"
+    src: "{{ item.path }}"
+    dest: "{{ nginx_folder_temp }}/{{ item.path | basename }}"
     owner: "{{ ansible_ssh_user }}"
     mode: '0644'
-  with_items:
-    - docker-compose.yml
-    - nginx.conf
+  with_community.general.filetree: '{{ role_path }}/files'
+
+- name: Validate nginx config using nginx -t
+  command: docker run --rm -v {{ nginx_folder_temp }}/nginx.conf:/etc/nginx/conf.d/default.conf nginx nginx -t
+  args:
+    chdir: "{{ nginx_folder_temp }}"
+  register: nginx_validation
+
+- name: Copy files for nginx container to real folder
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ nginx_folder }}/{{ item.path | basename }}"
+    owner: "{{ ansible_ssh_user }}"
+    mode: '0644'
+  with_community.general.filetree: '{{ role_path }}/files'
 
 - name: docker compose down
   command: "docker compose down"
@@ -60,3 +73,8 @@
   ansible.builtin.debug:
     var: logs
   when: wait_output.failed
+
+- name: Delete temp folder
+  ansible.builtin.file:
+    path: "{{ nginx_folder_temp }}"
+    state: absent
