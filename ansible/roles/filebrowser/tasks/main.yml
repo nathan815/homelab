@@ -1,35 +1,24 @@
 ---
-- name: Ensure folder {{ plex_folder }} exists
+- name: Ensure folder {{ filebrowser_folder }} exists
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: "{{ ansible_ssh_user }}"
     mode: '0755'
   with_items:
-    - "{{ plex_folder }}"
-    - "{{ plex_config_folder }}"
+    - "{{ filebrowser_folder }}"
 
 - name: Render and copy docker-compose.yml
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: "{{ plex_folder }}/docker-compose.yml"
+    dest: "{{ filebrowser_folder }}/docker-compose.yml"
     owner: "{{ ansible_ssh_user }}"
     mode: '0644'
 
-- name: docker compose pull
-  command: docker compose pull
+- name: Stop docker compose services
+  command: "docker compose down"
   args:
-    chdir: "{{ plex_folder }}"
-  register: output
-
-- name: Show docker compose output
-  ansible.builtin.debug:
-    var: output
-
-- name: docker compose down
-  command: docker compose down
-  args:
-    chdir: "{{ plex_folder }}"
+    chdir: "{{ filebrowser_folder }}"
   register: output
   ignore_errors: true
 
@@ -37,10 +26,10 @@
   ansible.builtin.debug:
     var: output
 
-- name: docker compose up
-  command: docker compose up -d --quiet-pull
+- name: Start docker compose services
+  command: "docker compose up -d --quiet-pull"
   args:
-    chdir: "{{ plex_folder }}"
+    chdir: "{{ filebrowser_folder }}"
   register: output
 
 - name: Show docker compose output
@@ -49,7 +38,7 @@
 
 - name: Wait for the service to start
   wait_for:
-    port: "{{ plex_port }}"
+    port: "{{ filebrowser_port }}"
     delay: 5
     timeout: 300
     state: started

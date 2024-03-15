@@ -1,0 +1,16 @@
+---
+services:
+    filebrowser:
+        container_name: filebrowser
+        image: "filebrowser/filebrowser:s6"
+
+        volumes:
+            - "{{ filebrowser_serve_path }}:/srv"
+            - "{{ filebrowser_folder }}/filebrowser.db:/database/filebrowser.db"
+            {# - /path/to/settings.json:/config/settings.json #}
+
+        environment:
+            - PUID=1000
+            - PGID=1000
+        ports:
+            - "{{ filebrowser_port }}:80"
