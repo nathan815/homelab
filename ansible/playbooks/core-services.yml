@@ -32,3 +32,6 @@
 
     - role: upsnap
       tags: upsnap
+
+    - role: samba
+      tags: samba
