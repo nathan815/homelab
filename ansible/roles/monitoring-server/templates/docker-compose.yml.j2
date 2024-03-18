@@ -12,6 +12,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--web.enable-admin-api'
+      - '--storage.tsdb.retention.time=365d'
     ports:
       - "{{ monitoring_prometheus_port }}:9090"
     restart: always
