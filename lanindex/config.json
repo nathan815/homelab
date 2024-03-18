@@ -1,0 +1,27 @@
+{
+  "services": [
+    { "name": "Home Assistant", "url": "http://hass.lan:8123" },
+    { "name": "Grafana", "url": "http://grafana.lan" },
+    { "name": "Proxmox", "url": "http://proxmox.lan:8006" },
+    { "name": "AdGuard Home", "url": "http://adguard.lan" },
+    { "name": "OctoPrint", "url": "http://octoprint.lan" },
+    { "name": "Container Registry", "url": "http://ncr.lan" },
+    { "name": "UpSnap (PC Wake)", "url": "http://upsnap.lan" },
+    {
+      "name": "Plex",
+      "url": "http://plex.lan",
+      "check_url": "http://plex.lan/identity"
+    },
+    { "name": "Plex FileBrowser", "url": "http://files.lan" },
+    { "name": "Main Router", "url": "http://router.lan" },
+    { "name": "Prometheus", "url": "http://prometheus.lan" },
+    { "name": "WireGuard", "url": "http://wireguard.lan" },
+    { "name": "QBitTorrent", "url": "http://qbt.lan" },
+    { "name": "Zigbee2MQTT", "url": "http://192.168.0.154:8888" },
+    { "name": "Home Assistant Observer", "url": "http://hass.lan:4357" },
+    { "name": "pi01.lan cAdvisor", "url": "http://pi01.lan:9200" },
+    { "name": "pi01.lan Cockpit", "url": "https://pi01.lan:9090" },
+    { "name": "octoprint.lan Cockpit", "url": "https://octoprint.lan:9090" },
+    { "name": "TP-Link Switch", "url": "http://192.168.0.185" }
+  ]
+}

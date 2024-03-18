@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN Index</title>
+    <style>
+        body {
+            font-family: 'San Francisco', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px 25px;
+            background-color: #181d26;
+            color: #fff;
+        }
+        h1 {
+            margin: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .box {
+            background-color: #101419;
+            border-radius: 10px;
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            color: #eee;
+        }
+        .box:hover {
+            background-color: #080a0c;
+        }
+        .title {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .url {
+            font-size: 14px;
+            color: #777;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 1px;
+            vertical-align: middle;
+            background-color: #aaa;
+        }
+        .green {
+            background-color: green;
+        }
+        .red {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+<h1>@ Local Area Network</h1>
+<button onclick="refresh()">Refresh</button>
+</div>
+<div class="grid" id="services">
+    {% for service in services %}
+    <a href="{{ service.url }}" class="box" data-name="{{ service.name }}" rel="noreferrer">
+        <div class="title">{{ service.name }}</div>
+        <div class="url">{{ service.url_short }} <span class="dot" title="Loading..."></span></div>
+    </a>
+    {% endfor %}
+</div>
+
+<script>
+    function refresh() {
+        clearStatuses();
+        getStatuses();
+    }
+
+    function syncDotStatus(element, status) {
+        if (status.up) {
+            element.classList.add("green");
+            element.classList.remove("red");
+            element.title = "UP | Status Code: " + status.status_code;
+        } else {
+            element.classList.add("red");
+            element.classList.remove("green");
+            element.title = "DOWN | Status Code: " + status.status_code;
+        }
+    }
+
+    function clearDot(element) {
+        element.classList.remove("green");
+        element.classList.remove("red");
+        element.title = "Loading...";
+    }
+
+    function getStatuses() {
+        const serviceList = document
+            .getElementById("services")
+            .querySelectorAll("a");
+
+        for (let service of serviceList) {
+            const name = service.getAttribute("data-name");
+            const statusElement = service.querySelector(".dot");
+            fetch(`/status/${name}`).then(r => r.json()).then(status => {
+                syncDotStatus(statusElement, status);
+            });
+        }
+    }
+
+    function clearStatuses() {
+        const serviceList = document
+            .getElementById("services")
+            .querySelectorAll("a");
+
+        for (let service of serviceList) {
+            const statusElement = service.querySelector(".dot");
+            clearDot(statusElement);
+        }
+    }
+
+    getStatuses();
+</script>
+</body>
+</html>
