@@ -4,20 +4,32 @@ My home is becoming smarter day by day with the help of technology. I'm using th
 
 https://trello.com/b/16M8tM5F/smart-home-homelab
 
+## Overview
+
+Dell Optiplex 7050 running Proxmox, 2 Raspberry Pi 3B+'s, 1 Raspberry Pi 4B.
+
+These machines have some base software installed (see ansible/playbooks/base.yml):
+
+* Cockpit (management web UI)
+* Prometheus Node Exporter for system monitoring (CPU/mem/disk/network/etc.)
+* Docker + cAdvisor if hosting docker containers
+ 
 ## Services
 
 The services I'm currently locally running include:
 
-- Home Assistant
-- Plex Media Server
-- AdGuardHome - DNS server which blocks ads network wide. Similar to pihole.
-- WireGuard VPN
-- Monitoring - Grafana & Prometheus
-- Continuous Internet Monitoring (Speedtest + Uptime) with Prometheus
-- NGINX reverse proxy - enables accessing all my local services at friendly domain names on port 80/443
-- UpSnap - WakeOnLan tool
-- Zigbee2MQTT
-- Octoprint
+- [Home Assistant](https://www.home-assistant.io/) - Smart home magic! Dashboards, Automations, Mosquitto MQTT broker, and Control of devices via Zigbee/Matter/Bluetooth/etc.
+- [Zigbee2MQTT](https://www.zigbee2mqtt.io/) - Bridge between Zigbee network (Sonoff Zigbee coordinator) and Home Assisant over MQTT topics
+- [Plex Media Server](https://www.plex.tv/personal-media-server/) - Personal media server like Netflix or Hulu for my home... _"Nateflix"_
+- [OctoPrint](https://octoprint.org/) - 3D Printer controller 
+- [AdGuardHome](https://adguard.com/en/adguard-home/overview.html) - DNS server which blocks ads network wide. Similar to pihole.
+- [WireGuardEasy](https://github.com/wg-easy/wg-easy) - WireGuard VPN + managment UI
+- [Prometheus](https://prometheus.io/) - Collects and stores metrics on machines and containers across my network
+- [Grafana](https://grafana.com/) - Dashboards for Prometheus data
+- [Speedtest Exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) - Continuous Internet Monitoring (Speedtest + Uptime)
+- [NGINX](https://www.nginx.com/) - web server acting as a reverse proxy for all my services
+- [UpSnap](https://github.com/seriousm4x/UpSnap) - snappy UI for sending WakeOnLan packets to machines on local network
+- [Distribution Docker Registry](https://hub.docker.com/_/registry) and [Docker Registry UI](https://github.com/Joxit/docker-registry-ui)
 
 ## LAN Home Page
 
@@ -37,7 +49,7 @@ I have a small python site at home.lan with shortcuts + live status indicator fo
     - _WIP_: VM with Plex Media Server and related media docker containers
 
 - Raspberry Pi 4 (pi01.lan)
-  - Running most of my services currently, but I'm in the process of moving many of them over to VMs on the Proxmox box.
+  - Running most of my services currently. In the process of moving many of the containers over to a VM (or LXCs) on the Proxmox box.
 
 - Raspberry Pi 3 (pi02.lan)
   - This previously hosted Home Assistant, but I've since moved it into a VM on Proxmox (has been way more stable)
@@ -47,17 +59,8 @@ I have a small python site at home.lan with shortcuts + live status indicator fo
   - Octoprint 3D printer control software
   - Also runs zigbee2mqtt container for my Zigbee network due to the location of the Pi being ideal for the Zigbee coordinator.
 
-### Base Software
-Each of these machines have some base software installed (see ansible/playbooks/base.yml).
-
-* Cockpit (management web UI)
-* Prometheus Node Exporter (system monitoring - CPU/mem/disk/network/etc.)
-
 ## Ansible
 
-Most of the Ansible roles here deploy docker containers with docker-compose.
+All the software here (besides Home Assistant) is deployed and configured with Ansible. No manual installation commands.
 
-### Ansible Build
-I run Ansible in a docker container so I don't have to deal with maintaining its dependencies on my machine.
-
-`docker build -t ansible:latest .`
+The vast majority of the Ansible roles simply deploy docker containers with docker-compose. I try to avoid installing things directly on the hosts when possible. This keeps things easier to maintain.
