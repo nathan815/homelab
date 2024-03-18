@@ -24,6 +24,8 @@
 
     - role: docker
       tags: [docker]
+
+    # TODO: Figure out how to move back to using the geerlingguy.docker role (octoprint octopi os)
     # - role: geerlingguy.docker
     #   tags: [base, deps]
     #   vars:

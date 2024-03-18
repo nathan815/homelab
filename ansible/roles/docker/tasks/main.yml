@@ -1,6 +1,31 @@
 ---
-- ansible.builtin.shell: curl -sSL https://get.docker.com | sh
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_valid
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Docker using get.docker.com script
+  ansible.builtin.shell: curl -sSL https://get.docker.com | sh
+  become: true
+  when: docker_valid.failed
+
+- name: Add user to docker group
+  ansible.builtin.shell: usermod -aG docker "{{ ansible_ssh_user }}"
+  become: true
+  when: docker_valid.failed
+
+- name: Configure Docker daemon with insecure registry list
+  ansible.builtin.copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
   become: true
 
-- ansible.builtin.shell: usermod -aG docker "{{ ansible_ssh_user }}"
+- name: Restart docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted
   become: true
