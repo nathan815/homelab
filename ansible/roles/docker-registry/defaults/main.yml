@@ -1,0 +1,3 @@
+docker_registry_folder: "/home/{{ ansible_ssh_user }}/docker-registry"
+docker_registry_data_folder: "/media/plexmedia01/docker-registry-data"
+docker_registry_port: 5001

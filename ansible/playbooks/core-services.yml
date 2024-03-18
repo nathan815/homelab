@@ -1,6 +1,9 @@
 ---
 - hosts: pi01
   roles:
+    - role: docker-registry
+      tags: docker-registry
+
     - role: nginx-proxy
       tags: nginx
 
