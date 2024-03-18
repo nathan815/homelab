@@ -31,3 +31,6 @@
     #     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
     #     docker_users:
     #       - "{{ ansible_ssh_user }}"
+
+    - role: cadvisor
+      tags: [cadvisor]
