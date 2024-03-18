@@ -5,9 +5,9 @@ services:
         image: "filebrowser/filebrowser:s6"
 
         volumes:
-            - "{{ filebrowser_serve_path }}:/srv"
+            - "{{ filebrowser_serve_path }}:/files"
             - "{{ filebrowser_folder }}/filebrowser.db:/database/filebrowser.db"
-            {# - /path/to/settings.json:/config/settings.json #}
+            - "{{ filebrowser_config_file }}:/config/settings.json"
 
         environment:
             - PUID=1000
