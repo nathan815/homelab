@@ -23,7 +23,7 @@ The services I'm currently locally running include:
 
 I have a small python site at home.lan with shortcuts + live status indicator for each service/site in my LAN. Source code at [./lanindex](./lanindex). It is deployed as a docker container on pi01 and behind nginx proxy.
 
-<img width="1680" alt="Screenshot 2024-03-17 at 10 46 29 PM" src="https://github.com/nathan815/homelab/assets/1972782/d3b90305-38e8-4926-9b0a-ee2c01e51e6d">
+<img width="1680" alt="Screenshot 2024-03-17 at 10 46 29 PM" src="./lanindex/docs/screenshot.png">
 
 
 ## Hardware
