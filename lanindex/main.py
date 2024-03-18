@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', default='config.json', help='Path to the config file')
+parser.add_argument('--debug', default=False, action='store_true', help='Run in debug mode')
 args = parser.parse_args()
 
 @dataclass
@@ -61,4 +62,4 @@ def status(name):
     return check_service(service)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80, debug=True)
+    app.run(host="0.0.0.0", port=80, debug=args.debug)

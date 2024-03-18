@@ -19,9 +19,10 @@
     { "name": "QBitTorrent", "url": "http://qbt.lan" },
     { "name": "Zigbee2MQTT", "url": "http://192.168.0.154:8888" },
     { "name": "Home Assistant Observer", "url": "http://hass.lan:4357" },
-    { "name": "pi01.lan cAdvisor", "url": "http://pi01.lan:9200" },
     { "name": "pi01.lan Cockpit", "url": "https://pi01.lan:9090" },
+    { "name": "pi01.lan cAdvisor", "url": "http://pi01.lan:9200" },
     { "name": "octoprint.lan Cockpit", "url": "https://octoprint.lan:9090" },
+    { "name": "octoprint.lan cAdvisor", "url": "http://octoprint.lan:9200" },
     { "name": "TP-Link Switch", "url": "http://192.168.0.185" }
   ]
 }

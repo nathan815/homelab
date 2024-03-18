@@ -1,0 +1,2 @@
+lanindex_folder: "/home/{{ ansible_ssh_user }}/lanindex"
+lanindex_port: 8500

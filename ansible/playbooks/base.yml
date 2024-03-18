@@ -17,7 +17,7 @@
   become: true
   roles:
     - role: geerlingguy.pip
-      tags: [pip, docker]
+      tags: [pip]
       vars:
         pip_install_packages:
           - name: docker

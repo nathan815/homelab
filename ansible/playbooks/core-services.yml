@@ -36,3 +36,6 @@
 
     - role: filebrowser
       tags: filebrowser
+    
+    - role: lanindex
+      tags: lanindex
