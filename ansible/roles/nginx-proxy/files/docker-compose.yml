@@ -3,6 +3,7 @@ services:
   nginx-proxy:
     image: nginx
     container_name: nginx-proxy
+    restart: always
     volumes:
       - type: bind
         source: ./nginx.conf
