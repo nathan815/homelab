@@ -7,8 +7,6 @@ monitoring_grafana_hostname: "{{ monitoring_hostname }}"
 monitoring_grafana_port: 3000
 monitoring_grafana_admin_username: admin
 monitoring_grafana_admin_password: admin
-monitoring_prometheus_targets:
-  - localhost:9100
 
 # Internet Monitoring
 monitoring_internet_speedtest_interval: 60m

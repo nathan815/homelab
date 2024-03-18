@@ -12,11 +12,6 @@
       vars:
         monitoring_home_assistant_token: "{{ secrets.home_assistant_token }}"
         monitoring_hostname: pi01.lan
-        monitoring_prometheus_targets:
-          - pi01.lan:9100
-          - octoprint.lan:9100
-          - hass.lan:9100
-          - proxmox.lan:9100
 
     - role: wireguard-vpn
       tags: wireguard

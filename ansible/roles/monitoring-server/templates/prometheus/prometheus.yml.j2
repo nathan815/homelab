@@ -20,10 +20,19 @@ scrape_configs:
   metrics_path: /metrics
   scheme: http
   static_configs:
-  - targets:
-{% for host in monitoring_prometheus_targets %}
-    - {{ host }}
-{% endfor %}
+    - targets:
+        - pi01.lan:9100
+        - octoprint.lan:9100
+        - hass.lan:9100
+        - proxmox.lan:9100
+
+- job_name: containerhealth
+  scrape_interval: 15s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+    - targets:
+        - pi01.lan:9200
 
 - job_name: homeassistant_sensors
   scrape_interval: 30s
