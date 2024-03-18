@@ -1,1 +1,3 @@
 secrets.yml
+*.private.yml
+roles/private
