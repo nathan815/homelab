@@ -3,12 +3,11 @@ services:
     filebrowser:
         container_name: filebrowser
         image: "filebrowser/filebrowser:s6"
-
+        restart: always
         volumes:
             - "{{ filebrowser_serve_path }}:/files"
             - "{{ filebrowser_folder }}/filebrowser.db:/database/filebrowser.db"
             - "{{ filebrowser_config_file }}:/config/settings.json"
-
         environment:
             - PUID=1000
             - PGID=1000
