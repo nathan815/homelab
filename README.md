@@ -23,6 +23,7 @@ The services I'm currently locally running include:
 - [Home Assistant](https://www.home-assistant.io/) - Smart home magic! Dashboards, Automations, Mosquitto MQTT broker, and Control of devices via Zigbee/Matter/Bluetooth/etc.
 - [Zigbee2MQTT](https://www.zigbee2mqtt.io/) - Bridge between Zigbee network (Sonoff Zigbee coordinator) and Home Assisant over MQTT topics
 - [Plex Media Server](https://www.plex.tv/personal-media-server/) - Personal media server like Netflix or Hulu for my home... _"Nateflix"_
+- [Tautulli](https://tautulli.com/) - Monitoring/Tracking tool for Plex Media Server
 - [OctoPrint](https://octoprint.org/) - 3D Printer controller 
 - [AdGuardHome](https://adguard.com/en/adguard-home/overview.html) - DNS server which hosts CNAME records for my local services and blocks ads network-wide. Just like pihole.
 - [WireGuardEasy](https://github.com/wg-easy/wg-easy) - WireGuard VPN + management UI
