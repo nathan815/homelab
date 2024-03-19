@@ -15,8 +15,8 @@
     owner: "{{ ansible_ssh_user }}"
     mode: '0644'
 
-- name: Stop docker compose services
-  command: "docker compose down"
+- name: docker compose pull
+  command: docker compose pull
   args:
     chdir: "{{ lanindex_folder }}"
   register: output
@@ -26,8 +26,19 @@
   ansible.builtin.debug:
     var: output
 
-- name: Start docker compose services
-  command: "docker compose up -d --quiet-pull"
+- name: docker compose down
+  command: docker compose down
+  args:
+    chdir: "{{ lanindex_folder }}"
+  register: output
+  ignore_errors: true
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    var: output
+
+- name: docker compose up -d --quiet-pull
+  command: docker compose up -d --quiet-pull
   args:
     chdir: "{{ lanindex_folder }}"
   register: output

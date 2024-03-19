@@ -101,13 +101,14 @@
     }
 
     function getStatuses() {
-        const serviceList = document
-            .getElementById("services")
-            .querySelectorAll("a");
+        const links = document.getElementById("services").querySelectorAll("a");
 
-        for (let service of serviceList) {
-            const name = service.getAttribute("data-name");
-            const statusElement = service.querySelector(".dot");
+        for (let link of links) {
+            const name = link.getAttribute("data-name");
+            const statusElement = link.querySelector(".dot");
+            if (inIframe()) {
+                link.target = "_blank";
+            }
             fetch(`/status/${name}`).then(r => r.json()).then(status => {
                 syncDotStatus(statusElement, status);
             });
@@ -115,13 +116,19 @@
     }
 
     function clearStatuses() {
-        const serviceList = document
-            .getElementById("services")
-            .querySelectorAll("a");
+        const links = document.getElementById("services").querySelectorAll("a");
 
-        for (let service of serviceList) {
-            const statusElement = service.querySelector(".dot");
+        for (let link of links) {
+            const statusElement = link.querySelector(".dot");
             clearDot(statusElement);
+        }
+    }
+
+    function inIframe() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
         }
     }
 
