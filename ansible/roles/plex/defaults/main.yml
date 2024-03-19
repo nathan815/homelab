@@ -1,5 +1,11 @@
 ---
-plex_claim_token: "" # specify as -i plex_claim_token= during initial install
 plex_folder: "/home/{{ ansible_ssh_user }}/plex"
+
+# Plex Media Server
+plex_claim_token: "" # specify as -i plex_claim_token= during initial install
 plex_port: 32400
 plex_config_folder: "{{ plex_folder }}/config"
+
+# Tautulli Plex Monitoring Tool
+plex_tautulli_folder: "{{ plex_folder }}/tautulli"
+plex_tautulli_port: 8081

@@ -8,6 +8,7 @@
   with_items:
     - "{{ plex_folder }}"
     - "{{ plex_config_folder }}"
+    - "{{ plex_tautulli_folder }}"
 
 - name: Render and copy docker-compose.yml
   ansible.builtin.template:

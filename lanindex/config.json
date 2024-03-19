@@ -12,6 +12,7 @@
       "url": "http://plex.lan",
       "check_url": "http://plex.lan/identity"
     },
+    { "name": "Plex Monitor", "url": "http://monitor.plex.lan" },
     { "name": "Plex FileBrowser", "url": "http://files.lan" },
     { "name": "Main Router", "url": "http://router.lan" },
     { "name": "Prometheus", "url": "http://prometheus.lan" },
