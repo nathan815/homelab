@@ -17,7 +17,7 @@
     mode: '0644'
 
 - name: docker compose pull
-  command: docker compose pull
+  command: docker compose pull --quiet
   args:
     chdir: "{{ plex_folder }}"
   register: output

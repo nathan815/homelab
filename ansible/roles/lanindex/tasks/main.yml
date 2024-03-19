@@ -16,7 +16,7 @@
     mode: '0644'
 
 - name: docker compose pull
-  command: docker compose pull
+  command: docker compose pull --quiet
   args:
     chdir: "{{ lanindex_folder }}"
   register: output
