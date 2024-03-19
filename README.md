@@ -8,12 +8,14 @@ https://trello.com/b/16M8tM5F/smart-home-homelab
 
 Dell Optiplex 7050 running Proxmox, 2 Raspberry Pi 3B+'s, 1 Raspberry Pi 4B.
 
-These machines have some base software installed (see ansible/playbooks/base.yml):
+## Base Software
 
-* Cockpit (management web UI)
-* Prometheus Node Exporter for system monitoring (CPU/mem/disk/network/etc.)
-* Docker + cAdvisor if hosting docker containers
- 
+Each of the phyiscal machines listed above as well as some Proxmox VMs have the following base software installed. See [ansible/playbooks/base.yml](./ansible/playbooks/base.yml).
+
+* [Cockpit](https://cockpit-project.org/) - Linux server management web UI
+* [Node Exporter](https://github.com/prometheus/node_exporter) - Machine metrics Prometheus exporter (CPU/mem/disk/network/etc.)
+* [cAdvisor](https://github.com/google/cadvisor) - monitoring metrics for containers w/ Prometheus exporter endpoint (Only on servers which host containers)
+
 ## Services
 
 The services I'm currently locally running include:
