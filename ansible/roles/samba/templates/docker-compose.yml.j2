@@ -5,7 +5,7 @@ services:
   samba:
     image: docker.io/servercontainers/samba:latest
     container_name: samba
-    restart: unless-stopped
+    restart: always
     environment:
       ACCOUNT_admin: admin123
       UID_admin: 1234

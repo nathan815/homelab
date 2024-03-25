@@ -5,7 +5,7 @@ services:
     plex:
         image: lscr.io/linuxserver/plex:latest
         container_name: plex
-        restart: unless-stopped
+        restart: always
         network_mode: host
 
         environment:
@@ -39,7 +39,7 @@ services:
     tautulli:
         image: ghcr.io/tautulli/tautulli
         container_name: plex_tautulli
-        restart: unless-stopped
+        restart: always
         volumes:
             - "{{ plex_tautulli_folder }}:/config"
         environment:

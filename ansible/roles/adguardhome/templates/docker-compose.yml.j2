@@ -5,7 +5,7 @@ services:
     adguardhome:
         image: adguard/adguardhome
         container_name: adguardhome
-        restart: unless-stopped
+        restart: always
         volumes:
             - "{{ adguardhome_work_folder }}:/opt/adguardhome/work"
             - "{{ adguardhome_config_folder }}:/opt/adguardhome/conf:rw"
