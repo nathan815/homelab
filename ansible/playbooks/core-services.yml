@@ -14,7 +14,7 @@
         monitoring_hostname: pi01.lan
 
     - role: wireguard-vpn
-      tags: wireguard
+      tags: [wireguard, vpn]
       vars:
         wg_external_host: "{{ lan_external_domain }}"
         wg_external_port: "{{ secrets.wireguard_external_port }}"
