@@ -9,3 +9,7 @@ plex_config_folder: "{{ plex_folder }}/config"
 # Tautulli Plex Monitoring Tool
 plex_tautulli_folder: "{{ plex_folder }}/tautulli"
 plex_tautulli_port: 8081
+
+# Overseerr Media Request Site
+plex_overseerr_folder: "{{ plex_folder }}/overseerr"
+plex_overseerr_port: 8082

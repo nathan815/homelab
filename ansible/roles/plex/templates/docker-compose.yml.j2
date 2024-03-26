@@ -26,19 +26,9 @@ services:
             test: wget --no-verbose --tries=1 --spider "http://localhost:{{ plex_port }}/identity"
             interval: 30s
 
-    plex-prom-exporter:
-        image: docker.io/nathan815/prometheus-plex-exporter
-        container_name: plex_prom_exporter
-        restart: always
-        ports:
-            - 8000:9000/tcp
-        environment:
-            PLEX_SERVER: "http://plex:{{ plex_port }}"
-            PLEX_TOKEN: "{{ plex_admin_token }}"
-
     tautulli:
         image: ghcr.io/tautulli/tautulli
-        container_name: plex_tautulli
+        container_name: plex-tautulli
         restart: always
         volumes:
             - "{{ plex_tautulli_folder }}:/config"
@@ -48,3 +38,16 @@ services:
             - TZ=America/Detroit
         ports:
             - "{{ plex_tautulli_port }}:8181"
+
+    overseerr:
+        image: lscr.io/linuxserver/overseerr:latest
+        container_name: plex-overseerr
+        restart: always
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Detroit
+        volumes:
+            - "{{ plex_overseerr_folder }}:/config"
+        ports:
+            - "{{ plex_overseerr_port }}:5055"
