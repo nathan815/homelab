@@ -51,3 +51,11 @@ services:
             - "{{ plex_overseerr_folder }}:/config"
         ports:
             - "{{ plex_overseerr_port }}:5055"
+
+    wizarr:
+        image: ghcr.io/wizarrrr/wizarr:latest
+        container_name: plex-wizarr
+        volumes:
+            - "{{ plex_wizarr_db_folder }}:/data/database"
+        ports:
+            - "{{ plex_wizarr_port }}:5690"

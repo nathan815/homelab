@@ -13,3 +13,8 @@ plex_tautulli_port: 8081
 # Overseerr Media Request Site
 plex_overseerr_folder: "{{ plex_folder }}/overseerr"
 plex_overseerr_port: 8082
+
+# Wizarr - Plex Onboarding
+plex_wizarr_folder: "{{ plex_folder }}/wizarr"
+plex_wizarr_db_folder: "{{ plex_folder }}/wizarr/db"
+plex_wizarr_port: 8083

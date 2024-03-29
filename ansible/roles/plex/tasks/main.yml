@@ -1,5 +1,5 @@
 ---
-- name: Ensure folder {{ plex_folder }} exists
+- name: Ensure folders exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -10,6 +10,8 @@
     - "{{ plex_config_folder }}"
     - "{{ plex_tautulli_folder }}"
     - "{{ plex_overseerr_folder }}"
+    - "{{ plex_wizarr_folder }}"
+    - "{{ plex_wizarr_db_folder }}"
 
 - name: Render and copy docker-compose.yml
   ansible.builtin.template:
