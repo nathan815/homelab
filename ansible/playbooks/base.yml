@@ -1,5 +1,11 @@
 - hosts: all
   become: true
+  tasks:
+    - name: Install vim
+      ansible.builtin.apt:
+        name: vim
+        update_cache: yes
+      tags: [deps, apt]
   roles:
     - role: geerlingguy.node_exporter
       tags: [node-exporter]
