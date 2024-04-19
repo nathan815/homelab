@@ -5,13 +5,8 @@
     state: directory
     owner: "{{ ansible_ssh_user }}"
     mode: '0755'
-  with_items:
-    - "{{ plex_folder }}"
-    - "{{ plex_config_folder }}"
-    - "{{ plex_tautulli_folder }}"
-    - "{{ plex_overseerr_folder }}"
-    - "{{ plex_wizarr_folder }}"
-    - "{{ plex_wizarr_db_folder }}"
+  with_items: "{{ plex_all_folders }}"
+  tags: [files]
 
 - name: Render and copy docker-compose.yml
   ansible.builtin.template:
@@ -19,6 +14,7 @@
     dest: "{{ plex_folder }}/docker-compose.yml"
     owner: "{{ ansible_ssh_user }}"
     mode: '0644'
+  tags: [files]
 
 - name: docker compose pull
   command: docker compose pull --quiet
@@ -36,10 +32,12 @@
     chdir: "{{ plex_folder }}"
   register: output
   ignore_errors: true
+  tags: [down]
 
 - name: Show docker compose output
   ansible.builtin.debug:
     var: output
+  tags: [down]
 
 - name: docker compose up
   command: docker compose up -d --quiet-pull
@@ -51,10 +49,29 @@
   ansible.builtin.debug:
     var: output
 
-- name: Wait for the service to start
+- name: Wait for services to start
   wait_for:
-    port: "{{ plex_port }}"
+    port: "{{ item.port }}"
     delay: 5
     timeout: 300
     state: started
+    message: "Service {{ item.name }} on port {{ item.port }} is not up yet"
   ignore_errors: true
+  with_items:
+    - name: plex
+      port: "{{ plex_port }}"
+    - name: tautulli
+      port: "{{ plex_tautulli_port }}"
+    - name: overseer
+      port: "{{ plex_overseerr_port }}"
+    - name: wizarr
+      port: "{{ plex_wizarr_port }}"
+    - name: prowlarr
+      port: "{{ prowlarr_port }}"
+    - name: radarr
+      port: "{{ radarr_port }}"
+    - name: sonarr
+      port: "{{ sonarr_port }}"
+    - name: bazarr
+      port: "{{ bazarr_port }}"
+  tags: [upcheck]

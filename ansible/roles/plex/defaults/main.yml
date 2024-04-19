@@ -18,3 +18,39 @@ plex_overseerr_port: 8082
 plex_wizarr_folder: "{{ plex_folder }}/wizarr"
 plex_wizarr_db_folder: "{{ plex_folder }}/wizarr/db"
 plex_wizarr_port: 8083
+
+# Prowlarr
+prowlarr_folder: "{{ plex_folder }}/prowlarr"
+prowlarr_data_folder: "{{ plex_folder }}/prowlarr/data"
+prowlarr_port: 8084
+
+# Radarr
+radarr_folder: "{{ plex_folder }}/radarr"
+radarr_data_folder: "{{ plex_folder }}/radarr/data"
+radarr_port: 8085
+
+# Sonarr
+sonarr_folder: "{{ plex_folder }}/sonarr"
+sonarr_data_folder: "{{ plex_folder }}/sonarr/data"
+sonarr_port: 8086
+
+# Bazarr
+bazarr_folder: "{{ plex_folder }}/bazarr"
+bazarr_data_folder: "{{ plex_folder }}/bazarr/data"
+bazarr_port: 8087
+
+plex_all_folders:
+  - "{{ plex_folder }}"
+  - "{{ plex_config_folder }}"
+  - "{{ plex_tautulli_folder }}"
+  - "{{ plex_overseerr_folder }}"
+  - "{{ plex_wizarr_folder }}"
+  - "{{ plex_wizarr_db_folder }}"
+  - "{{ prowlarr_folder }}"
+  - "{{ prowlarr_data_folder }}"
+  - "{{ radarr_folder }}"
+  - "{{ radarr_data_folder }}"
+  - "{{ sonarr_folder }}"
+  - "{{ sonarr_data_folder }}"
+  - "{{ bazarr_folder }}"
+  - "{{ bazarr_data_folder }}"
