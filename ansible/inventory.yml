@@ -11,6 +11,10 @@ all:
     proxmox01:
       ansible_ssh_host: proxmox.lan
       ansible_ssh_user: root
+    docker.lan:
+      ansible_ssh_host: docker.lan
+      ansible_ssh_user: nathan
+      ansible_become_password: "{{ secrets.docker_vm_sudo_password }}"
 
 pi:
   hosts:
@@ -21,6 +25,7 @@ docker-hosts:
   hosts:
     pi01:
     octoprint:
+    docker.lan:
 
 proxmox:
   hosts:
