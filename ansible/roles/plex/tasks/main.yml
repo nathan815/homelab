@@ -16,6 +16,11 @@
     mode: '0644'
   tags: [files]
 
+- name: Copy filebrowser_config.json
+  ansible.builtin.copy:
+    src: filebrowser_config.json
+    dest: "{{ filebrowser_config_file }}"
+
 - name: docker compose pull
   command: docker compose pull --quiet
   args:
@@ -55,7 +60,7 @@
     delay: 5
     timeout: 300
     state: started
-    message: "Service {{ item.name }} on port {{ item.port }} is not up yet"
+    msg: "Service {{ item.name }} on port {{ item.port }} is not up yet"
   ignore_errors: true
   with_items:
     - name: plex

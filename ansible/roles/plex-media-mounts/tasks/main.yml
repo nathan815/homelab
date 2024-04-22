@@ -1,0 +1,23 @@
+- name: Create /media/plexmedia01
+  ansible.builtin.file:
+    path: /media/plexmedia01
+    state: directory
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: '0755'
+  tags: [plex]
+
+- name: Mount Drive 1 (2TB) at /media/plexmedia01
+  ansible.posix.mount:
+    src:  UUID=b5e01917-25e7-43c0-ba3d-cf438e07b3ff
+    path: /media/plexmedia01
+    fstype: ext4
+    state: mounted
+    opts: defaults,nofail
+    dump: 0
+    passno: 2
+    boot: true
+  tags: [plex]
+
+- name: Validate /etc/fstab
+  shell: "mount -fav"

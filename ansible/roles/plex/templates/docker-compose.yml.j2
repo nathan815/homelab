@@ -1,6 +1,4 @@
 ---
-version: '3.5'
-
 services:
     plex:
         image: lscr.io/linuxserver/plex:latest
@@ -114,3 +112,34 @@ services:
             - "/media/plexmedia01:/media01"
         ports:
             - "{{ bazarr_port }}:6767"
+
+    samba:
+        image: docker.io/servercontainers/samba:latest
+        container_name: plex-samba
+        restart: always
+        environment:
+        ACCOUNT_admin: admin123
+        UID_admin: 1234
+        #SAMBA_VOLUME_CONFIG_plex_flashdrive: "[plex_flashdrive]; path=/shares/plex_flashdrive; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = yes; guest ok = yes"
+        SAMBA_VOLUME_CONFIG_plexmedia01: "[plexmedia01]; path=/shares/plexmedia01; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = no; guest ok = no"
+        volumes:
+            # - /media/usbdriveplex:/shares/plex_flashdrive
+            - /media/plexmedia01:/shares/plexmedia01
+        ports:
+            - 445:445
+        cap_add:
+            - CAP_NET_ADMIN
+
+    filebrowser:
+        container_name: plex-filebrowser
+        image: "filebrowser/filebrowser:s6"
+        restart: always
+        volumes:
+            - "/media:/files"
+            - "{{ plex_filebrowser_folder }}/filebrowser.db:/database/filebrowser.db"
+            - "{{ plex_filebrowser_config_file }}:/config/settings.json"
+        environment:
+            - PUID=1000
+            - PGID=1000
+        ports:
+            - "{{ plex_filebrowser_port }}:80"

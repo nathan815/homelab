@@ -39,6 +39,11 @@ bazarr_folder: "{{ plex_folder }}/bazarr"
 bazarr_data_folder: "{{ plex_folder }}/bazarr/data"
 bazarr_port: 8087
 
+# Filebrowser
+plex_filebrowser_folder: "{{ plex_folder }}/filebrowser"
+plex_filebrowser_config_file: "{{ plex_filebrowser_folder }}/filebrowser_config.json"
+plex_filebrowser_port: 8080
+
 plex_all_folders:
   - "{{ plex_folder }}"
   - "{{ plex_config_folder }}"
@@ -54,3 +59,4 @@ plex_all_folders:
   - "{{ sonarr_data_folder }}"
   - "{{ bazarr_folder }}"
   - "{{ bazarr_data_folder }}"
+  - "{{ plex_filebrowser_folder }}"
