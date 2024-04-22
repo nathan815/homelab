@@ -1,9 +1,11 @@
 - hosts: all
   become: true
   tasks:
-    - name: Install vim
+    - name: Install apt packages
       ansible.builtin.apt:
-        name: vim
+        name:
+          - vim
+          - rsync
         update_cache: yes
       tags: [deps, apt]
   roles:
@@ -14,10 +16,10 @@
           armv7l: armv7
           aarch64: arm64
           x86_64: amd64
-        node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+        node_exporter_a rch: "{{ node_exporter_arch_map[ansible_architecture] }}"
 
     - role: cockpit
-      tags: [mgmt-tools, cockpit]
+      tags: [cockpit]
 
 - hosts: docker-hosts
   become: true
@@ -28,17 +30,17 @@
         pip_install_packages:
           - name: docker
 
-    - role: docker
-      tags: [docker]
+    # needed for octoprint octopi os
+    # - role: docker
+    #   tags: [docker]
 
-    # TODO: Figure out how to move back to using the geerlingguy.docker role (octoprint octopi os)
-    # - role: geerlingguy.docker
-    #   tags: [base, deps]
-    #   vars:
-    #     docker_apt_arch: arm64
-    #     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
-    #     docker_users:
-    #       - "{{ ansible_ssh_user }}"
+    - role: geerlingguy.docker
+      tags: [docker]
+      vars:
+        # docker_apt_arch: arm64
+        # docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
+        docker_users:
+          - "{{ ansible_ssh_user }}"
 
     - role: cadvisor
       tags: [cadvisor]
