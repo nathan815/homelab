@@ -1,0 +1,12 @@
+- hosts: docker.lan
+  become: true
+  roles:
+    - role: plex-media-mounts
+      tags: [mounts]
+
+- hosts: docker.lan
+  vars:
+      plex_admin_token: "{{ secrets.plex_admin_token }}"
+  roles:
+    - role: plex
+      tags: plex

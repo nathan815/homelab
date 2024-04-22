@@ -1,9 +1,6 @@
 ---
 - hosts: pi01
   roles:
-    - role: docker-registry
-      tags: docker-registry
-
     - role: nginx-proxy
       tags: nginx
 
@@ -23,19 +20,14 @@
         wg_allowed_ips:
           - "{{ lan_network }}"
 
-    - role: plex
-      tags: plex
-      vars:
-        plex_admin_token: "{{ secrets.plex_admin_token }}"
-
     - role: upsnap
       tags: upsnap
-
-    - role: samba
-      tags: samba
-
-    - role: filebrowser
-      tags: filebrowser
     
     - role: lanindex
       tags: lanindex
+
+
+- hosts: docker.lan
+  roles:
+    - role: docker-registry
+      tags: docker-registry
