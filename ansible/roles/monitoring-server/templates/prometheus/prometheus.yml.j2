@@ -21,6 +21,7 @@ scrape_configs:
   scheme: http
   static_configs:
     - targets:
+        - docker.lan:9100
         - pi01.lan:9100
         - octoprint.lan:9100
         - hass.lan:9100
@@ -32,6 +33,7 @@ scrape_configs:
   scheme: http
   static_configs:
     - targets:
+        - docker.lan:9200
         - pi01.lan:9200
         - octoprint.lan:9200
 
