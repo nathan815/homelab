@@ -19,7 +19,7 @@
 - name: Copy filebrowser_config.json
   ansible.builtin.copy:
     src: filebrowser_config.json
-    dest: "{{ filebrowser_config_file }}"
+    dest: "{{ plex_filebrowser_config_file }}"
 
 - name: docker compose pull
   command: docker compose pull --quiet
