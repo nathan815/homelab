@@ -16,7 +16,7 @@
           armv7l: armv7
           aarch64: arm64
           x86_64: amd64
-        node_exporter_a rch: "{{ node_exporter_arch_map[ansible_architecture] }}"
+        node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] }}"
 
     - role: cockpit
       tags: [cockpit]
