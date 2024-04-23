@@ -1,7 +1,14 @@
 ---
 - hosts: pi01
   roles:
-    - role: nginx-proxy
+    - role: deploy-stack
+      vars:
+        stack_name: dockge
+      tags: dockge
+
+    - role: deploy-stack
+      vars:
+        stack_name: nginx-proxy
       tags: nginx
 
     - role: monitoring-server

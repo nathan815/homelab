@@ -21,6 +21,11 @@
     src: filebrowser_config.json
     dest: "{{ plex_filebrowser_config_file }}"
 
+- name: Touch filebrowser.db
+  ansible.builtin.file:
+    path: "{{ plex_filebrowser_folder }}/filebrowser.db"
+    state: touch
+
 - name: docker compose pull
   command: docker compose pull --quiet
   args:

@@ -1,19 +1,17 @@
 ---
-version: '3.5'
-
 services:
     adguardhome:
         image: adguard/adguardhome
         container_name: adguardhome
         restart: always
         volumes:
-            - "{{ adguardhome_work_folder }}:/opt/adguardhome/work"
-            - "{{ adguardhome_config_folder }}:/opt/adguardhome/conf:rw"
+            - "./data/work:/opt/adguardhome/work"
+            - "./data/config:/opt/adguardhome/conf:rw"
         ports:
-            #- "{{ adguardhome_install_web_ui_port }}:3000/tcp" # Install web interface. Only needed at first.
-            - "{{ adguardhome_web_ui_port }}:80/tcp" # Web interface
-            - {{ adguardhome_ip }}:53:53/tcp # DNS
-            - {{ adguardhome_ip }}:53:53/udp # DNS
+            - ${AGH_UI_PORT}:80/tcp # Web interface
+            - ${AGH_IP}:53:53/tcp # DNS
+            - ${AGH_IP}:53:53/udp # DNS
+            #- "9999:3000/tcp" # Install web interface. Only needed at first setup.
             #- 67:67/udp # DHCP
             #- 68:68/udp # DHCP
             #- 443:443/tcp # DNS over HTTPS

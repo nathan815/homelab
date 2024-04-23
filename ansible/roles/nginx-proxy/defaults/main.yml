@@ -1,3 +1,0 @@
----
-nginx_folder: "/home/{{ ansible_ssh_user }}/nginx-proxy"
-nginx_folder_temp: "{{ nginx_folder }}_temp"
