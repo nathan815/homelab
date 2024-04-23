@@ -118,10 +118,10 @@ services:
         container_name: plex-samba
         restart: always
         environment:
-        ACCOUNT_admin: admin123
-        UID_admin: 1234
-        #SAMBA_VOLUME_CONFIG_plex_flashdrive: "[plex_flashdrive]; path=/shares/plex_flashdrive; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = yes; guest ok = yes"
-        SAMBA_VOLUME_CONFIG_plexmedia01: "[plexmedia01]; path=/shares/plexmedia01; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = no; guest ok = no"
+            ACCOUNT_admin: admin123
+            UID_admin: 1234
+            #SAMBA_VOLUME_CONFIG_plex_flashdrive: "[plex_flashdrive]; path=/shares/plex_flashdrive; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = yes; guest ok = yes"
+            SAMBA_VOLUME_CONFIG_plexmedia01: "[plexmedia01]; path=/shares/plexmedia01; available = yes; browsable = yes; writable = yes; read only = no; force user = admin; public = no; guest ok = no"
         volumes:
             # - /media/usbdriveplex:/shares/plex_flashdrive
             - /media/plexmedia01:/shares/plexmedia01
