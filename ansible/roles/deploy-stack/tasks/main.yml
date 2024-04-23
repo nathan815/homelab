@@ -17,13 +17,6 @@
   delegate_to: localhost
   register: check_validation_exists
 
-- debug:
-    msg:
-    - "{{ stacks_local_folder }}"
-    - "{{ stacks_remote_folder }}"
-    - "{{ stack_name }}"
-    - "{{ check_validation_exists }}"
-
 - name: Run stack validation script
   ansible.builtin.command: "bash {{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
@@ -52,7 +45,7 @@
 - name: Show docker compose output
   ansible.builtin.debug:
     var: output
-  when: stack_restart | default(false)
+  when: stack_force_restart | default(false)
 
 - name: docker compose up -d
   ansible.builtin.command: "docker compose up -d"

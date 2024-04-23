@@ -6,6 +6,7 @@ RUN apt-get update; \
     apt-get install -y gcc python3; \
     apt-get install -y python3-pip; \
     apt-get install -y openssh-client; \
+    apt-get install -y docker.io; \
     apt-get clean all
 
 RUN pip3 install --upgrade pip; \
@@ -14,10 +15,7 @@ RUN pip3 install --upgrade pip; \
 
 WORKDIR /work
 
-
 COPY ansible.cfg .
 COPY requirements.yml .
 
 RUN ansible-galaxy role install -r requirements.yml
-
-COPY . .

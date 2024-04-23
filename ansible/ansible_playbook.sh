@@ -6,10 +6,12 @@ IMAGE=ansible:latest
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 MOUNT_DIR="$(dirname "$SCRIPT_DIR")"
 
-CMD="cd /work/ansible && ansible-playbook -e @secrets.yml $ARGS"
+CMD="cd $MOUNT_DIR/ansible && ansible-playbook -e @secrets.yml $ARGS"
 echo "[ansible container]  $CMD"
 
-docker run -it -v "$MOUNT_DIR":/work -v ~/.ssh:/root/.ssh "$IMAGE" \
+docker run -it -v "$MOUNT_DIR":"$MOUNT_DIR" \
+    -v /var/run/docker.sock:/var/run/docker.sock\
+    -v ~/.ssh:/root/.ssh "$IMAGE" \
     sh -c "$CMD"
 
 # Examples
