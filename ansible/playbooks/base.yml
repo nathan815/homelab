@@ -53,5 +53,5 @@
 
     - role: deploy-stack
       vars:
-        stack_name: cadvisor
-      tags: cadvisor
+        stack_name: container-mgmt
+      tags: container-mgmt
