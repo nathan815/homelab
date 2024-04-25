@@ -11,6 +11,11 @@
         stack_name: nginx-proxy
       tags: nginx
 
+    - role: deploy-stack
+      vars:
+        stack_name: dashkiosk
+      tags: dashkiosk
+
     - role: monitoring-server
       tags: monitoring
       vars:
