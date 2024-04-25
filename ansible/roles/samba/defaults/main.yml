@@ -1,2 +1,0 @@
----
-samba_folder: "/home/{{ ansible_ssh_user }}/samba"

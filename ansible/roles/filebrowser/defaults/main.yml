@@ -1,6 +1,0 @@
----
-filebrowser_folder: "/home/{{ ansible_ssh_user }}/filebrowser"
-filebrowser_db_folder: "{{ filebrowser_folder }}/db"
-filebrowser_config_file: "{{ filebrowser_folder }}/filebrowser_config.json"
-filebrowser_port: 8080
-filebrowser_serve_path: /media
