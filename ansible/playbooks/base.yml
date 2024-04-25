@@ -8,6 +8,15 @@
           - rsync
         update_cache: yes
       tags: [deps, apt]
+
+    - name: Create /opt/stacks
+      ansible.builtin.file:
+        path: /opt/stacks
+        state: directory
+        owner: "{{ ansible_ssh_user }}"
+        group: "{{ ansible_ssh_user }}"
+      tags: dirs
+
   roles:
     - role: geerlingguy.node_exporter
       tags: [node-exporter]
@@ -42,5 +51,7 @@
         docker_users:
           - "{{ ansible_ssh_user }}"
 
-    - role: cadvisor
-      tags: [cadvisor]
+    - role: deploy-stack
+      vars:
+        stack_name: cadvisor
+      tags: cadvisor

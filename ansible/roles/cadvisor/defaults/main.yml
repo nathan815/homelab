@@ -1,2 +1,0 @@
-cadvisor_folder: "/home/{{ ansible_ssh_user }}/cadvisor"
-cadvisor_port: 9200
