@@ -1,17 +1,22 @@
 ---
-- name: Check if stack folder exists
+- name: Create remote stacks folder
+  ansible.builtin.file:
+    path: "{{ stacks_remote_folder }}"
+    state: directory
+
+- name: Check if local stack folder exists
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}"
   delegate_to: localhost
   register: check_stack_exists
 
-- name: Fail if stack folder does not exist
+- name: Fail if local stack folder does not exist
   fail:
     msg: "Stack {{ stacks_local_folder }}/{{ stack_name }} does not exist"
   delegate_to: localhost
   when: not check_stack_exists.stat.exists
 
-- name: Check if validation file exists
+- name: Check if stack validation script exists
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
@@ -31,7 +36,7 @@
 - name: Copy stack files to server
   ansible.builtin.copy:
     src: "{{ stacks_local_folder }}/{{ stack_name }}"
-    dest: "{{ stacks_remote_folder }}/{{ stack_name }}"
+    dest: "{{ stacks_remote_folder }}"
     owner: "{{ ansible_ssh_user }}"
 
 - name: docker compose down
@@ -41,18 +46,22 @@
   register: output
   ignore_errors: true
   when: stack_force_restart | default(false)
+  tags: [docker, docker_down]
 
 - name: Show docker compose output
   ansible.builtin.debug:
     var: output
   when: stack_force_restart | default(false)
+  tags: [docker, docker_down]
 
 - name: docker compose up -d
   ansible.builtin.command: "docker compose up -d"
   args:
     chdir: "{{ stacks_remote_folder }}/{{ stack_name }}"
   register: output
+  tags: [docker, docker_up]
 
 - name: Show docker compose output
   ansible.builtin.debug:
     var: output
+  tags: [docker, docker_up]

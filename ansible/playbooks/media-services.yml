@@ -5,8 +5,7 @@
       tags: [mounts]
 
 - hosts: docker.lan
-  vars:
-      plex_admin_token: "{{ secrets.plex_admin_token }}"
   roles:
-    - role: plex
-      tags: plex
+    - role: deploy-stack
+      vars:
+        stack_name: media-system
