@@ -36,5 +36,12 @@
 
 - hosts: docker.lan
   roles:
-    - role: docker-registry
+    - role: deploy-stack
+      vars:
+        stack_name: dockge
+      tags: dockge
+
+    - role: deploy-stack
+      vars:
+        stack_name: docker-registry
       tags: docker-registry

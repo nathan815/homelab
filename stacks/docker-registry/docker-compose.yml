@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   registry-ui:
     image: joxit/docker-registry-ui:main
     restart: always
     ports:
-      - "{{ docker_registry_port }}:80"
+      - "${DOCKER_REGISTRY_PORT}:80"
     environment:
       - SINGLE_REGISTRY=true
       - REGISTRY_TITLE=Nathan Container Registry
@@ -31,5 +29,5 @@ services:
       REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers: '[Docker-Content-Digest]'
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
     volumes:
-      - "{{ docker_registry_data_folder }}:/var/lib/registry"
+      - "${DOCKER_REGISTRY_DATA_DIR}:/var/lib/registry"
     container_name: registry-server
