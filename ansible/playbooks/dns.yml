@@ -5,3 +5,8 @@
       vars:
         stack_name: adguardhome
       tags: adguardhome
+
+    - role: deploy-stack
+      vars:
+        stack_name: cloudflare-ddns
+      tags: ddns
