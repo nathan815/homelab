@@ -21,12 +21,13 @@ services:
   # Dockge - Docker Compose Management Web UI
   dockge:
     image: louislam/dockge:1
+    container_name: dockge
     restart: always
     ports:
       - ${DOCKGE_PORT}:5001
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/app/data
+      - ./data/dockge:/app/data
 
       # If you want to use private registries, you need to share the auth file with Dockge:
       # - /root/.docker/:/root/.docker
