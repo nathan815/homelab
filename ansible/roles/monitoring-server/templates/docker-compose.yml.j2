@@ -9,6 +9,7 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
+    user: root
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--web.enable-admin-api'
@@ -18,7 +19,7 @@ services:
     restart: always
     volumes:
       - ./prometheus:/etc/prometheus
-      - prom_data:/prometheus
+      - /mnt/data1/monitoring-data/prometheus:/prometheus
     networks:
       - back-tier
     healthcheck:
@@ -37,6 +38,8 @@ services:
       - GF_SECURITY_ADMIN_USER={{ monitoring_grafana_admin_username }}
       - GF_SECURITY_ADMIN_PASSWORD={{ monitoring_grafana_admin_password }}
       - GF_SECURITY_ALLOW_EMBEDDING=true
+      #- GF_SECURITY_COOKIE_SAMESITE=none
+      #- GF_SECURITY_COOKIE_SECURE=true
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
       - grafana_data:/var/lib/grafana
@@ -80,5 +83,4 @@ services:
       - back-tier
 
 volumes:
-  prom_data:
   grafana_data:
