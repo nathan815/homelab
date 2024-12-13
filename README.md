@@ -1,12 +1,24 @@
-# Nathan's SmartHome / HomeLab
+# Homelab
 
-My home is becoming smarter day by day with the help of technology. I'm using this as a way to learn new things in software & hardware, and to make life easier!
+This repo contains all my dev-ops scripts and tools that I use for my homelab and self-hosted apps.
+
+I use this as a way to learn new things in software & hardware, and to make life easier with smart home technology.
 
 https://trello.com/b/16M8tM5F/smart-home-homelab
 
-## Overview
 
-Dell Optiplex 7050 running Proxmox, 2 Raspberry Pi 3B+'s, 1 Raspberry Pi 4B.
+## Hardware Overview
+
+Servers:
+* Dell Optiplex 7050 running Proxmox (sort of like VMware)
+   * I plan to get more of these to form a Proxmox cluster
+* 2 Raspberry Pi 3B+'s
+* 1 Raspberry Pi 4B
+
+Networking:
+* Router: Mikrotik Routerboard RB3011
+* Access Point: Netgear Insight WAX615. Powered via PoE.
+* 16-port PoE Switch
 
 ## Base Software
 
@@ -41,8 +53,7 @@ I have a small python site at home.lan with shortcuts + live status indicator fo
 <img width="1680" alt="Screenshot 2024-03-17 at 10 46 29 PM" src="./lanindex/docs/screenshot.png">
 
 
-## Hardware
-
+## More details
 
 - Dell Optiplex 7050 Micro (proxmox.lan)
   - Running Proxmox Hypervisor
@@ -61,6 +72,7 @@ I have a small python site at home.lan with shortcuts + live status indicator fo
 - Raspberry Pi 3 (octoprint.lan)
   - Octoprint 3D printer control software
   - Also runs zigbee2mqtt container for my Zigbee network due to the location of the Pi being ideal for the Zigbee coordinator.
+
 
 ## Ansible
 
