@@ -1,9 +1,0 @@
----
-services:
-    lanindex:
-        image: ncr.lan:80/lanindex
-        platform: linux/arm64
-        container_name: lanindex
-        restart: always
-        ports:
-            - "{{ lanindex_port }}:80"

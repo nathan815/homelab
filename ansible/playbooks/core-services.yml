@@ -22,6 +22,16 @@
         stack_name: wireguard-vpn
       tags: [wireguard, vpn]
 
+    - role: deploy-stack
+      vars:
+        stack_name: lanindex
+      tags: lanindex
+
+    - role: deploy-stack
+      vars:
+        stack_name: upsnap
+      tags: upsnap
+
     # - role: wireguard-vpn
     #   tags: [wireguard, vpn]
     #   vars:
@@ -32,11 +42,11 @@
     #     wg_allowed_ips:
     #       - "{{ lan_network }}"
 
-    - role: upsnap
-      tags: upsnap
+    # - role: upsnap
+    #   tags: upsnap
     
-    - role: lanindex
-      tags: lanindex
+    # - role: lanindex
+    #   tags: lanindex
 
 - hosts: docker.lan
   roles:

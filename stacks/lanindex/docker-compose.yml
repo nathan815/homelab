@@ -1,0 +1,16 @@
+---
+version: "3"
+
+services:
+
+  # Home Index - http://home.lan/
+  lanindex:
+    image: ncr.lan:80/lanindex
+    platform: linux/arm64
+    container_name: lanindex
+    restart: always
+    ports:
+      - "${LANINDEX_PORT}:80"
+    healthcheck:
+      test: python -c "import sys, requests; sys.exit(0) if requests.get('http://localhost/ping').status_code == 200 else sys.exit(1)"
+      interval: 10s

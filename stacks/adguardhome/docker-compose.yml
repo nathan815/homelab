@@ -1,5 +1,7 @@
 ---
 services:
+
+    # AdGuardHome - http://adguard.lan/
     adguardhome:
         image: adguard/adguardhome
         container_name: adguardhome

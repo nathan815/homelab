@@ -54,6 +54,10 @@ def check_service(service: ServiceConfig):
 def home():
     return render_template('index.html.j2', services=config.services)
 
+@app.route('/ping')
+def ping():
+    return 'Pong'
+
 @app.route('/status/<name>')
 def status(name):
     service = next((s for s in config.services if s.name == name), None)

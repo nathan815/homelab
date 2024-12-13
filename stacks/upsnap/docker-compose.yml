@@ -1,0 +1,14 @@
+services:
+  
+  # UpSnap Wake On LAN - http://upsnap.lan/
+  upsnap:
+    container_name: upsnap
+    image: ghcr.io/seriousm4x/upsnap:4
+    network_mode: host
+    restart: always
+    volumes:
+      - ./data:/app/pb_data
+    entrypoint: /bin/sh -c "./upsnap serve --http 0.0.0.0:${UPSNAP_PORT}"
+    healthcheck:
+      test: curl -fs "http://localhost:${UPSNAP_PORT}/api/health" || exit 1
+      interval: 10s
