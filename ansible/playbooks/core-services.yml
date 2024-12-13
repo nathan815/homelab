@@ -17,15 +17,20 @@
         monitoring_home_assistant_token: "{{ secrets.home_assistant_token }}"
         monitoring_hostname: pi01.lan
 
-    - role: wireguard-vpn
-      tags: [wireguard, vpn]
+    - role: deploy-stack
       vars:
-        wg_external_host: "{{ lan_external_domain }}"
-        wg_external_port: "{{ secrets.wireguard_external_port }}"
-        wg_default_dns: "{{ lan_dns_servers }}"
-        wg_admin_password: "{{ secrets.wireguard_admin_password }}"
-        wg_allowed_ips:
-          - "{{ lan_network }}"
+        stack_name: wireguard-vpn
+      tags: [wireguard, vpn]
+
+    # - role: wireguard-vpn
+    #   tags: [wireguard, vpn]
+    #   vars:
+    #     wg_external_host: "{{ lan_external_domain }}"
+    #     wg_external_port: "{{ secrets.wireguard_external_port }}"
+    #     wg_default_dns: "{{ lan_dns_servers }}"
+    #     wg_admin_password: "{{ secrets.wireguard_admin_password }}"
+    #     wg_allowed_ips:
+    #       - "{{ lan_network }}"
 
     - role: upsnap
       tags: upsnap
