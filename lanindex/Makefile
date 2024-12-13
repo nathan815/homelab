@@ -1,16 +1,14 @@
-.PHONY: docker-build docker-run docker-push ansible-deploy-playbook deploy
+TAG=latest
 
-docker-build:
-	docker build -t lanindex:latest --platform=linux/amd64 --platform=linux/arm64 --platform=linux/arm/v7 .
+.PHONY: docker-build-push docker-run ansible-deploy-playbook deploy
+
+docker-build-push:
+	docker buildx build -t ncr.lan:80/lanindex:${TAG} --platform=linux/amd64 --platform=linux/arm64 --platform=linux/arm/v7 --push --output=type=registry,registry.insecure=true .
 
 docker-run:
 	docker run --rm -p 8080:80 -v $(PWD)/config.json:/app/config.json lanindex
 
-docker-push:
-	docker tag lanindex:latest ncr.lan:80/lanindex:latest
-	docker push ncr.lan:80/lanindex:latest
-
 ansible-deploy-playbook:
 	cd ../ansible && ./ansible_playbook.sh playbooks/core-services.yml --tag lanindex --limit pi01
 
-deploy: docker-build docker-push ansible-deploy-playbook
+deploy: docker-build-push ansible-deploy-playbook

@@ -13,6 +13,8 @@
       "check_url": "http://plex.lan/identity"
     },
     { "name": "Plex Monitor", "url": "http://monitor.plex.lan" },
+    { "name": "Plex Overseerr", "url": "http://request.plex.lan" },
+    { "name": "Plex Wizarr", "url": "http://wizarr.plex.lan" },
     { "name": "Plex FileBrowser", "url": "http://files.lan" },
     { "name": "Main Router", "url": "http://router.lan" },
     { "name": "Prometheus", "url": "http://prometheus.lan" },
@@ -27,7 +29,6 @@
     { "name": "octoprint.lan cAdvisor", "url": "http://octoprint.lan:9200" },
     { "name": "octoprint.lan Node Exporter", "url": "http://octoprint.lan:9100" },
     { "name": "proxmox.lan Cockpit", "url": "https://proxmox.lan:9090" },
-    { "name": "proxmox.lan Node Exporter", "url": "http://proxmox.lan:9100" },
-    { "name": "TP-Link Switch", "url": "http://192.168.0.185" }
+    { "name": "proxmox.lan Node Exporter", "url": "http://proxmox.lan:9100" }
   ]
 }
