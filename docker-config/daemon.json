@@ -1,0 +1,13 @@
+{
+    "builder": {
+      "gc": {
+        "defaultKeepStorage": "20GB",
+        "enabled": true
+      }
+    },
+    "experimental": false,
+    "insecure-registries": [
+      "http://ncr.lan"
+    ]
+  }
+  

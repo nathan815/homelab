@@ -1,0 +1,3 @@
+[registry."ncr.lan"]
+  http = true
+  insecure = true
