@@ -55,7 +55,7 @@
   tags: [docker, docker_down]
 
 - name: docker compose up -d
-  ansible.builtin.command: "docker compose up -d"
+  ansible.builtin.command: "docker compose up -d --pull always"
   args:
     chdir: "{{ stacks_remote_folder }}/{{ stack_name }}"
   register: output
