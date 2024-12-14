@@ -28,8 +28,8 @@
         }
         .box {
             background-color: #101419;
-            border-radius: 10px;
-            padding: 10px 20px;
+            border-radius: 20px;
+            padding: 20px;
             transition: background-color 0.3s ease;
             text-decoration: none;
             color: #eee;
@@ -46,25 +46,33 @@
             color: #777;
         }
         .dot {
+            font-size: 12px;
+        }
+        .dot::before {
+            content: '';
             width: 10px;
             height: 10px;
             border-radius: 50%;
             display: inline-block;
             margin-left: 1px;
+            margin-right: 4px;
             vertical-align: middle;
             background-color: #aaa;
         }
-        .green {
+        .dot.red {
+            color: red;
+        }
+        .dot.green::before {
             background-color: green;
         }
-        .red {
+        .dot.red::before {
             background-color: red;
         }
     </style>
 </head>
 <body>
 <div class="header">
-<h1>@ Local Area Network</h1>
+<h1>🏠 LAN Index</h1>
 <button onclick="refresh()">Refresh</button>
 </div>
 <div class="grid" id="services">
@@ -91,6 +99,11 @@
             element.classList.add("red");
             element.classList.remove("green");
             element.title = "DOWN | Status Code: " + status.status_code;
+            if (status.status_code !== null) {
+                element.innerText = `${status.status_code}`;
+            } else {
+                element.innerText = "???";
+            }
         }
     }
 
@@ -98,6 +111,7 @@
         element.classList.remove("green");
         element.classList.remove("red");
         element.title = "Loading...";
+        element.innerText = "";
     }
 
     function getStatuses() {
