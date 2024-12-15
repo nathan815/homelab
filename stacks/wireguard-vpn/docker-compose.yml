@@ -4,9 +4,8 @@ services:
   wireguard:
     environment:
       - LANG=en
-      - WG_HOST=${WG_PUBLIC_HOST}
-      - WG_PORT=${WG_PUBLIC_PORT}
-      - PASSWORD=${WG_PASSWORD}
+      - WG_HOST=${WG_EXTERNAL_HOST}
+      - PASSWORD_HASH=${WG_PASSWORD_HASH}
       - WG_DEFAULT_DNS=192.168.0.148
       - WG_ALLOWED_IPS=${WG_LAN_NETWORK}
 
@@ -15,8 +14,8 @@ services:
     volumes:
       - etc_wireguard:/etc/wireguard
     ports:
-      - "51820:51820/udp"
-      - "51821:51821/tcp"
+      - "51820:51820/udp" # VPN traffic
+      - "51821:51821/tcp" # Web UI
     restart: always
     cap_add:
       - NET_ADMIN
