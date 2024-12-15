@@ -28,14 +28,20 @@
         }
         .box {
             background-color: #101419;
-            border-radius: 20px;
+            border-radius: 23px;
             padding: 20px;
             transition: background-color 0.3s ease;
             text-decoration: none;
             color: #eee;
+            transition-property: transform;
+            transition-duration: 0.2s;
         }
         .box:hover {
             background-color: #080a0c;
+            transform: scale(0.96);
+        }
+        .box:active {
+            background-color: #030404;
         }
         .title {
             font-size: 18px;
