@@ -100,11 +100,11 @@
         if (status.up) {
             element.classList.add("green");
             element.classList.remove("red");
-            element.title = "UP | Status Code: " + status.status_code;
+            element.title = `UP | Status Code: ${status.status_code}\n${status.url}`;
         } else {
             element.classList.add("red");
             element.classList.remove("green");
-            element.title = "DOWN | Status Code: " + status.status_code;
+            element.title = `DOWN | Status Code: ${status.status_code}\n${status.url}`;
             if (status.status_code !== null) {
                 element.innerText = `${status.status_code}`;
             } else {

@@ -21,9 +21,13 @@ class ServiceConfig:
             for k, v in self.display_url_replacements.items():
                 self.display_url = self.display_url.replace(k, v)
 
+        if not self.check_url:
+            self.check_url = self.url
+
         if self.url_replacements:
             for k, v in self.url_replacements.items():
                 self.url = self.url.replace(k, v)
+                self.check_url = self.check_url.replace(k, v)
 
 
 @dataclass
@@ -51,16 +55,29 @@ def read_config(config_file: str) -> Config:
 
 
 def check_service(service: ServiceConfig):
-    url = service.check_url if service.check_url else service.url
+    url = service.check_url
     try:
         response = requests.get(url, verify=False, timeout=5)
         print("Service {url} status: {response.ok}".format(url=url, response=response))
         if not response.ok:
             print(response.status_code, response.content)
-        return {"up": response.ok, "status_code": response.status_code}
-    except requests.ConnectionError as e:
+        return {
+            "up": response.ok,
+            "status_code": response.status_code,
+            "url": url,
+            "content": str(response.content),
+        }
+    except requests.RequestException as e:
         print("Failed to reach service {url}: {e}".format(url=url, e=e))
-        return {"up": False, "status_code": None}
+        status_code = e.response.status_code if e.response else None
+        content = e.response.content if e.response else None
+        return {
+            "up": False,
+            "status_code": status_code,
+            "url": url,
+            "error": str(e),
+            "content": content,
+        }
 
 
 parser = argparse.ArgumentParser()
