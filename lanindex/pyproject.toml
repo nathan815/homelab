@@ -1,0 +1,15 @@
+[project]
+name = "lanindex"
+version = "0.1.0"
+description = "Homepage for services on my local network"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1.0",
+    "requests>=2.32.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]

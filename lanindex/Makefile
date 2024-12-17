@@ -12,3 +12,6 @@ ansible-deploy-playbook:
 	cd ../ansible && ./ansible_playbook.sh playbooks/core-services.yml --tag lanindex --limit pi01
 
 deploy: docker-build-push ansible-deploy-playbook
+
+pip-compile:
+	uv pip compile pyproject.toml > requirements.txt

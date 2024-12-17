@@ -85,7 +85,7 @@
     {% for service in services %}
     <a href="{{ service.url }}" class="box" data-name="{{ service.name }}" rel="noreferrer">
         <div class="title">{{ service.name }}</div>
-        <div class="url">{{ service.url_short }} <span class="dot" title="Loading..."></span></div>
+        <div class="url">{{ service.display_url }} <span class="dot" title="Loading..."></span></div>
     </a>
     {% endfor %}
 </div>
@@ -108,7 +108,7 @@
             if (status.status_code !== null) {
                 element.innerText = `${status.status_code}`;
             } else {
-                element.innerText = "???";
+                element.innerText = "";
             }
         }
     }
