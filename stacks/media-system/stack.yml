@@ -1,0 +1,5 @@
+env:
+  PASS:
+    az_keyvault_secret:
+      keyvault: mykeyvault
+      secret: mysecret

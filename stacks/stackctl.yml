@@ -1,0 +1,29 @@
+hosts:
+  - host: pi01.lan
+    env:
+      TEST: 123
+    stacks:
+      - dockge
+      - cadvisor
+      - adguardhome
+      - nginx-proxy
+      - monitoring-server
+      - wireguard-vpn
+      - upsnap
+      - lanindex
+
+  - host: docker.lan
+    env:
+      TEST: 123
+      MY_PW:
+        az_keyvault_secret:
+          keyvault: mykeyvault
+          secret: mysecret
+    stacks:
+      - dockge
+      - cadvisor
+      - media-system
+      - docker-registry
+
+global_env:
+  TIMEZONE: "America/New_York"
