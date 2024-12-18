@@ -1,7 +1,7 @@
 import argparse
 from dataclasses import dataclass
 from typing import List
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 import requests
 import json
 
@@ -95,6 +95,9 @@ app = Flask(__name__)
 def home():
     return render_template("index.html.j2", services=config.services)
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return redirect('/', code=302)
 
 @app.route("/ping")
 def ping():
