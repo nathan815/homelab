@@ -1,0 +1,66 @@
+################################
+# 🦎 KOMODO COMPOSE - MONGO 🦎 #
+################################
+
+## This compose file will deploy:
+##   1. MongoDB
+##   2. Komodo Core
+##   3. Komodo Periphery
+
+services:
+  ferretdb:
+    image: ghcr.io/ferretdb/ferretdb
+    labels:
+      komodo.skip: # Prevent Komodo from stopping with StopAllContainers
+    restart: unless-stopped
+    logging:
+      driver: ${COMPOSE_LOGGING_DRIVER:-local}
+    networks:
+      - default
+    # ports:
+    #   - 27017:27017
+    volumes:
+      - sqlite-data:/state
+    environment:
+      - FERRETDB_HANDLER=sqlite
+  
+  core:
+    image: ghcr.io/mbecker20/komodo:${COMPOSE_KOMODO_IMAGE_TAG:-latest}
+    labels:
+      komodo.skip: # Prevent Komodo from stopping with StopAllContainers
+    restart: unless-stopped
+    depends_on:
+      - ferretdb
+    logging:
+      driver: ${COMPOSE_LOGGING_DRIVER:-local}
+    networks:
+      - default
+    ports:
+      - 9120:9120
+    env_file: ./komodo.env
+    environment:
+      KOMODO_DATABASE_ADDRESS: ferretdb
+    volumes:
+      ## Core cache for repos for latest commit hash / contents
+      - repo-cache:/repo-cache
+      ## Store sync files on server
+      # - /path/to/syncs:/syncs
+      ## Optionally mount a custom core.config.toml
+      # - /path/to/core.config.toml:/config/config.toml
+    ## Allows for systemd Periphery connection at 
+    ## "http://host.docker.internal:8120"
+    # extra_hosts:
+    #   - host.docker.internal:host-gateway
+
+volumes:
+  # DB
+  sqlite-data:
+  # Core
+  repo-cache:
+  # Periphery
+  ssl-certs:
+  repos:
+  stacks:
+
+networks:
+  default: {}
