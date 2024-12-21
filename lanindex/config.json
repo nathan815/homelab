@@ -11,6 +11,8 @@
     { "name": "Home Assistant", "url": "http://hass.$domain:8123" },
     { "name": "AdGuard Home", "url": "http://adguard.$domain" },
     { "name": "OctoPrint", "url": "http://octoprint.$domain" },
+    { "name": "Uptime Kuma", "url": "http://uptimekuma.$domain" },
+    { "name": "Komodo", "url": "http://komodo.$domain" },
     { "name": "Grafana", "url": "http://grafana.$domain" },
     { "name": "Prometheus", "url": "http://prometheus.$domain" },
     { "name": "Proxmox", "url": "http://proxmox.$domain:8006" },
