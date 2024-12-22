@@ -41,20 +41,21 @@ services:
       # Tell Dockge where is your stacks directory
       - DOCKGE_STACKS_DIR=${DOCKGE_STACKS_DIR}
 
-  ## Komodo Periphery Agent
+  # Komodo Periphery Agent
   komodo-periphery:
-    image: ghcr.io/mbecker20/periphery:${COMPOSE_KOMODO_IMAGE_TAG:-latest}
+    image: ghcr.io/mbecker20/periphery:${KOMODO_IMAGE_TAG:-latest}
     container_name: komodo-periphery
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers
     restart: unless-stopped
     logging:
-      driver: ${COMPOSE_LOGGING_DRIVER:-local}
+      driver: ${KOMODO_LOGGING_DRIVER:-local}
     networks:
       - default
     environment:
       # PERIPHERY_ALLOWED_IPS: 192.168.0.148
-      PERIPHERY_PASSKEY: ${PERIPHERY_PASSKEY}
+      PERIPHERY_PASSKEY: ${KOMODO_PASSKEY}
+      PERIPHERY_STACK_DIR: ${DOCKGE_STACKS_DIR}
     ports:
       - 8120:8120
     volumes:
@@ -70,7 +71,7 @@ services:
       # - repos:/etc/komodo/repos
       ## manage stack files in a docker volume, 
       ## or change it to an accessible host directory.
-      - /opt/stacks:/etc/komodo/stacks
+      - ${DOCKGE_STACKS_DIR}:${DOCKGE_STACKS_DIR}
       ## Optionally mount a path to store compose files
       # - /path/to/compose:/host/compose
 
