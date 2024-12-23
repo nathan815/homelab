@@ -43,7 +43,7 @@ services:
 
   # Komodo Periphery Agent
   komodo-periphery:
-    image: ghcr.io/mbecker20/periphery:${KOMODO_IMAGE_TAG:-latest}
+    image: ghcr.io/mbecker20/periphery:1.16
     container_name: komodo-periphery
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers
