@@ -14,7 +14,7 @@ services:
 
     volumes:
       - "./data/plex:/config"
-      - /media/plexmedia01:/Media
+      - /media/plexmedia01:/Media:ro
     tmpfs:
       - /transcode:size=1G
     healthcheck:
@@ -22,7 +22,7 @@ services:
       interval: 30s
 
   tautulli:
-    image: ghcr.io/tautulli/tautulli
+    image: ghcr.io/tautulli/tautulli:v2.15.0
     container_name: plex-tautulli
     restart: always
     volumes:
