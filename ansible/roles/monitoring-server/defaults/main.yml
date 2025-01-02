@@ -7,11 +7,3 @@ monitoring_grafana_hostname: "{{ monitoring_hostname }}"
 monitoring_grafana_port: 3000
 monitoring_grafana_admin_username: admin
 monitoring_grafana_admin_password: admin
-
-# Internet Monitoring
-monitoring_internet_speedtest_interval: 60m
-monitoring_internet_ping_interval: 10s
-monitoring_internet_ping_hosts:
-  - http://www.google.com/;google.com
-  - https://github.com/;github.com
-  - 1.1.1.1;CF DNS (1.1.1.1)

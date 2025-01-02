@@ -47,19 +47,21 @@ scrape_configs:
 
 - job_name: internet_speedtest
   metrics_path: /metrics
-  scrape_interval: {{ monitoring_internet_speedtest_interval }}
+  scrape_interval: 60s
   scrape_timeout: 60s  # running speedtest needs time to complete
   static_configs:
     - targets: ['internet_speedtest:9798']
 
 - job_name: internet_ping
   metrics_path: /probe
-  scrape_interval: {{ monitoring_internet_ping_interval }}
+  scrape_interval: 10s
   params:
     module: [http_2xx]  # Look for a HTTP 200 response.
-  file_sd_configs:
-    - files:
-        - pinghosts.yml
+  static_configs:
+    - targets:
+        - http://www.google.com/;google.com
+        - https://github.com/;github.com
+        - 1.1.1.1;CF DNS (1.1.1.1)
   relabel_configs:
     - source_labels: [__address__]
       regex: '(.*);(.*)'  # first is the url, thus unique for instance

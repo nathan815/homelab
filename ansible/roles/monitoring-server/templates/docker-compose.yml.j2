@@ -48,6 +48,9 @@ services:
       - GF_SECURITY_ALLOW_EMBEDDING=true
       #- GF_SECURITY_COOKIE_SAMESITE=none
       #- GF_SECURITY_COOKIE_SECURE=true
+      - HOSTNAME=grafana.lan.nathancj.com
+      - GF_SERVER_DOMAIN=grafana.lan.nathancj.com
+      - GF_SERVER_ROOT_URL=http://grafana.lan.nathancj.com
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
       - grafana_data:/var/lib/grafana
@@ -89,6 +92,8 @@ services:
       - 9798:9798
     networks:
       - back-tier
+    environment:
+      - SPEEDTEST_CACHE_FOR=3600 # 1 hour
 
 volumes:
   grafana_data:
