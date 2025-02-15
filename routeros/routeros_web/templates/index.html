@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikrotik Simple Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.3.7/dist/vuetify.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.7/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar :elevation="2">
+                <template v-slot:prepend>
+                  <v-app-bar-nav-icon></v-app-bar-nav-icon>
+                </template>
+              
+                <v-app-bar-title>Mikrotik Simple Web</v-app-bar-title>
+              </v-app-bar>
+            <v-container  style="margin-top:60px">
+                <v-row justify="center">
+                    <v-col cols="20" md="16">
+                        <h1 class="text-center">Mikrotik Simple Web</h1>
+                        <a href="/devices">Connected Devices (DHCP Leases)</a>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {}
+        }).use(Vuetify.createVuetify()).mount("#app");
+    </script>
+</body>
+</html>

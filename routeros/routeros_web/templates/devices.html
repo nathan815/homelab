@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikrotik Simple Web: Connected Devices (DHCP)</title>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.3.7/dist/vuetify.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.7/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar :elevation="2">
+                <template v-slot:prepend>
+                  <v-app-bar-nav-icon></v-app-bar-nav-icon>
+                </template>
+              
+                <v-app-bar-title>Mikrotik Simple Web</v-app-bar-title>
+              </v-app-bar>
+            <v-container  style="margin-top:60px">
+                <v-row justify="center">
+                    <v-col cols="20" md="16">
+                        <h1 class="text-center">Connected Devices (DHCP)</h1>
+                        <v-text-field v-model="search" label="Search..." class="mb-4"></v-text-field>
+                        <v-data-table
+                            :headers="headers"
+                            :items="leases"
+                            items-per-page="100"
+                            item-key="id"
+                            :search="search"
+                            class="elevation-1"
+                        ></v-data-table>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const leases = ref([]);
+                const search = ref("");
+
+                const headers = [
+                    { title: "IP Address", key: "address", sortable: true },
+                    { title: "MAC Address", key: "mac-address", sortable: true },
+                    { title: "Host Name", key: "host-name", sortable: true },
+                    { title: "Status", key: "status", sortable: true },
+                    { title: "Reserved", key: "reserved", sortable: true },
+                    { title: "Last Seen", key: "last-seen", sortable: true },
+                    { title: "Expires After", key: "expires-after", sortable: true },
+                    { title: "Comment", key: "comment", sortable: true },
+                ];
+
+                const fetchLeases = async () => {
+                    try {
+                        const response = await fetch('/api/leases');
+                        const data = await response.json();
+                        console.log('data', data);
+                        const mapped = data.map(item => ({
+                            ...item,
+                            reserved: item.dynamic == "true" ? "-" : "✅"
+                        }));
+                        console.log('mapped', mapped);
+                        leases.value = mapped;
+                        console.log('leases.value', leases.value);
+                    } catch (error) {
+                        console.error("Error fetching leases:", error);
+                    }
+                };
+
+                const filteredLeases = computed(() => {
+                    if (!search.value) return leases.value;
+                    return leases.value?.filter(lease =>
+                        Object.values(lease).some(val =>
+                            String(val).toLowerCase().includes(search.value.toLowerCase())
+                        )
+                    );
+                });
+
+                fetchLeases();
+
+                return { leases, search, headers, filteredLeases };
+            }
+        }).use(Vuetify.createVuetify()).mount("#app");
+    </script>
+</body>
+</html>
