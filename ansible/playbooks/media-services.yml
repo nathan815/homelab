@@ -1,8 +1,8 @@
-- hosts: docker.lan
-  become: true
-  roles:
-    - role: plex-media-mounts
-      tags: [mounts]
+# - hosts: docker.lan
+#   become: true
+#   roles:
+#     - role: plex-media-mounts
+#       tags: [mounts]
 
 - hosts: docker.lan
   roles:
