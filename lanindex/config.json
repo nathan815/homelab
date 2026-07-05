@@ -8,7 +8,7 @@
     "$domain": "lan.nathancj.com"
   },
   "services": [
-    { "name": "Home Assistant", "url": "http://hass.$domain:8123" },
+    { "name": "Home Assistant", "url": "https://hass.$domain" },
     { "name": "AdGuard Home", "url": "http://adguard.$domain" },
     { "name": "OctoPrint", "url": "http://octoprint.$domain" },
     { "name": "Komodo", "url": "http://komodo.$domain" },
