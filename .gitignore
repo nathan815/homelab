@@ -1,0 +1,32 @@
+# OS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Secrets & credentials
+secrets.yml
+secrets.local.yml
+.env
+.env.local
+*.key
+*.pem
+cloudflare.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Misc
+.vagrant/
+*.log
