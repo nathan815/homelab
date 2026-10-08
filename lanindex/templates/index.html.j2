@@ -212,6 +212,13 @@
             box-shadow: 0 0 0 3px color-mix(in srgb, var(--down) 22%, transparent);
         }
         @keyframes pulse { 50% { opacity: 0.35; } }
+        button.active { border-color: var(--accent); color: var(--accent); }
+        body.compact .grid { grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 8px; margin-top: 20px; }
+        body.compact .box { padding: 8px 12px; gap: 10px; border-radius: 12px; }
+        body.compact .avatar { width: 28px; height: 28px; border-radius: 8px; font-size: 13px; }
+        body.compact .avatar img { padding: 4px; }
+        body.compact .title { font-size: 14px; }
+        body.compact .url { display: none; }
         .empty {
             display: none;
             margin-top: 48px;
@@ -236,12 +243,13 @@
                 <input id="search" type="search" placeholder="Filter services" autocomplete="off" aria-label="Filter services">
                 <kbd>/</kbd>
             </div>
+            <button id="compact-toggle" onclick="toggleCompact()" aria-pressed="false">Compact</button>
             <button onclick="refresh()">Refresh</button>
         </div>
     </div>
     <div class="grid" id="services">
         {% for service in services %}
-        <a href="{{ service.url }}" class="box" data-name="{{ service.name }}" data-search="{{ (service.name ~ ' ' ~ service.display_url)|lower }}" rel="noreferrer">
+        <a href="{{ service.url }}" class="box" data-name="{{ service.name }}" data-search="{{ (service.name ~ ' ' ~ service.display_url)|lower }}" rel="noreferrer" title="{{ service.display_url }}">
             <div class="avatar" data-label="{{ service.name }}">
                 <span>{{ service.name[0]|upper }}</span>
                 <img src="/icon/{{ service.name|urlencode }}" alt="" loading="lazy">
@@ -364,6 +372,20 @@
             return true;
         }
     }
+
+    function setCompact(on) {
+        document.body.classList.toggle("compact", on);
+        const btn = document.getElementById("compact-toggle");
+        btn.classList.toggle("active", on);
+        btn.setAttribute("aria-pressed", on);
+        try { localStorage.setItem("compact", on ? "1" : "0"); } catch (e) {}
+    }
+
+    function toggleCompact() {
+        setCompact(!document.body.classList.contains("compact"));
+    }
+
+    try { if (localStorage.getItem("compact") === "1") setCompact(true); } catch (e) {}
 
     const search = document.getElementById("search");
     search.addEventListener("input", () => {
