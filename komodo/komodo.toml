@@ -17,7 +17,6 @@ tags = ["core"]
 
 [stack.config]
 server = "pi01"
-git_account = "nathan815"
 repo = "nathan815/homelab"
 branch = "main"
 run_directory = "stacks/lanindex"
@@ -33,7 +32,6 @@ LANINDEX_PORT = 8500
 name = "homelab"
 
 [resource_sync.config]
-git_account = "nathan815"
 repo = "nathan815/homelab"
 branch = "main"
 resource_path = ["komodo/komodo.toml"]
