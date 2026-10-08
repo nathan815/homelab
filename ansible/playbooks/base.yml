@@ -58,6 +58,9 @@
             max-size: "10m"
             max-file: "3"
 
+    - role: docker-requires-mounts
+      tags: [docker, docker-mounts]
+
     - role: deploy-stack
       vars:
         stack_name: container-mgmt

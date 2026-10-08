@@ -1,20 +1,17 @@
 #!/bin/bash
-ARGS=$@
+# Run an ansible playbook through uv (no docker needed). Secrets come from secrets.yml.
+#
+#   ./ansible_playbook.sh playbooks/base.yml --limit docker.lan --tags docker-mounts --check --diff
+#
+# First run installs ansible (uv) and the galaxy roles from requirements.yml into .galaxy/ (git-ignored).
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-IMAGE=ansible:latest
+export ANSIBLE_ROLES_PATH="$PWD/.galaxy/roles:$PWD/roles"
+if [ ! -d .galaxy/roles/geerlingguy.docker ]; then
+  echo "[uv] installing galaxy roles into .galaxy/roles"
+  uv run --quiet ansible-galaxy role install -r requirements.yml -p .galaxy/roles
+fi
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-MOUNT_DIR="$(dirname "$SCRIPT_DIR")"
-
-CMD="cd $MOUNT_DIR/ansible && ansible-playbook -e @secrets.yml $ARGS"
-echo "[ansible container]  $CMD"
-
-docker run -it -v "$MOUNT_DIR":"$MOUNT_DIR" \
-    -v /var/run/docker.sock:/var/run/docker.sock\
-    -v ~/.ssh:/root/.ssh "$IMAGE" \
-    sh -c "$CMD"
-
-# Examples
-# ./run_playbook.sh pi_setup.yml
-# ./run_playbook.sh pi_setup.yml --tags monitoring
-# ./run_playbook.sh pi_setup.yml --skip-tags base
+echo "[ansible via uv]  ansible-playbook -e @secrets.yml $*"
+exec uv run --quiet ansible-playbook -e @secrets.yml "$@"

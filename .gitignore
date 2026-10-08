@@ -30,3 +30,6 @@ venv/
 # Misc
 .vagrant/
 *.log
+
+# Ansible galaxy roles installed by ansible/ansible_playbook.sh
+.galaxy/

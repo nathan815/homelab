@@ -1,0 +1,3 @@
+---
+# Mount points that must be mounted before docker.service starts. Empty = no drop-in.
+docker_required_mounts: []

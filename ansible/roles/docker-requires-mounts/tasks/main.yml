@@ -1,0 +1,32 @@
+---
+# Makes docker.service wait for the listed mount points, so containers never start against an empty
+# directory when a drive is slow or missing. Does not restart docker: the drop-in takes effect the
+# next time docker starts (e.g. at boot).
+- name: Ensure docker.service.d exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: docker_required_mounts | length > 0
+
+- name: Require mounts before docker starts
+  ansible.builtin.template:
+    src: requires-mounts.conf.j2
+    dest: /etc/systemd/system/docker.service.d/requires-mounts.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: docker_required_mounts | length > 0
+  notify: Reload systemd
+
+- name: Remove the drop-in when no mounts are required
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d/requires-mounts.conf
+    state: absent
+  when: docker_required_mounts | length == 0
+  notify: Reload systemd
+
+- name: Apply the systemd change now
+  ansible.builtin.meta: flush_handlers
