@@ -37,6 +37,11 @@
         stack_name: komodo
       tags: komodo
 
+    - role: deploy-stack
+      vars:
+        stack_name: woodpecker
+      tags: woodpecker
+
     # - role: wireguard-vpn
     #   tags: [wireguard, vpn]
     #   vars:

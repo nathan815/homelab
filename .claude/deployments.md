@@ -155,6 +155,16 @@ docker-compose -f myservice/docker-compose.yml up -d
 - Managed via wg-easy UI
 - Clients configured in Mikrotik RouterOS
 
+### Woodpecker CI
+- Stack at `stacks/woodpecker`, runs on pi01, deployed via `deploy-stack` role (`core-services.yml`, tag `woodpecker`):
+  ```bash
+  cd ansible/
+  ./ansible_playbook.sh core-services.yml --tags woodpecker
+  ```
+- Exposed at `http://woodpecker.lan.nathancj.com` (proxied to `pi01.lan:8001` — **not** 8000, since nginx-proxy's own `nginx-public` container already binds host port 8000 on pi01)
+- `.env` values needed (see `.env.defaults`): `WOODPECKER_HOST`, `WOODPECKER_GITHUB_CLIENT`/`WOODPECKER_GITHUB_SECRET` (from a GitHub OAuth App, not a GitHub App — callback URL `http://woodpecker.lan.nathancj.com/authorize`; "Enable Device Flow" is not needed), `WOODPECKER_AGENT_SECRET` (`openssl rand -hex 32`)
+- After deploying, authorize with GitHub in the UI, enable the `homelab-code` repo, and add a `DEPLOY_SSH_KEY` secret to the repo for the pipeline's deploy step
+
 ## Backup & Restore
 
 ### Current State

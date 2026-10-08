@@ -9,4 +9,4 @@ sh ./stacks/validate.sh
 echo ""
 echo "Copying stacks folder to $HOST..."
 
-rsync -r stacks/ $HOST:/opt/stacks
+rsync -r --exclude='data' --exclude='.env' --exclude='cloudflare.ini' stacks/ $HOST:/opt/stacks

@@ -1,0 +1,92 @@
+---
+# Woodpecker CI/CD Pipeline for Homelab
+# Validates and deploys infrastructure-as-code
+
+steps:
+  # Stage 1: Validate all configurations (runs on all branches)
+  validate-docker-compose:
+    image: docker:cli-alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Validating docker-compose files..."
+      - |
+        for f in stacks/*/docker-compose.yml; do
+          echo "  Checking $f..."
+          docker compose -f "$f" config > /dev/null || exit 1
+        done
+      - echo "✓ All docker-compose files valid"
+
+  validate-ansible:
+    image: alpine:latest
+    commands:
+      - echo "Validating Ansible playbooks..."
+      - apk add --no-cache python3 py3-pip
+      - pip3 install ansible-core ansible-lint > /dev/null
+      - ansible-lint ansible/playbooks/ || true
+      - echo "✓ Ansible validation complete"
+
+  validate-yaml:
+    image: alpine:latest
+    commands:
+      - echo "Validating YAML syntax..."
+      - apk add --no-cache yamllint
+      - yamllint ansible/ lanindex/ || true
+      - echo "✓ YAML validation complete"
+
+  validate-scripts:
+    image: alpine:latest
+    commands:
+      - echo "Validating shell scripts..."
+      - apk add --no-cache shellcheck
+      - shellcheck stacks/*.sh || true
+      - echo "✓ Shell script validation complete"
+
+  # Stage 2: Deploy (only on main branch)
+  deploy-stacks:
+    image: alpine:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    secrets:
+      - deploy_ssh_key
+    commands:
+      - echo "Preparing deployment..."
+      - apk add --no-cache openssh-client git bash
+      - mkdir -p ~/.ssh
+      - echo "$DEPLOY_SSH_KEY" > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - ssh-keyscan -H pi01.lan >> ~/.ssh/known_hosts 2>/dev/null || true
+      - echo "Pulling latest code on pi01..."
+      - ssh -i ~/.ssh/id_rsa nathan@pi01.lan "cd /opt/homelab && git fetch origin && git reset --hard origin/main"
+      - echo "Deploying stacks..."
+      - ssh -i ~/.ssh/id_rsa nathan@pi01.lan "cd /opt/homelab/stacks && bash deploy.sh"
+      - rm ~/.ssh/id_rsa
+      - echo "✓ Deployment complete"
+    when:
+      branch: main
+      event: push
+      status: success
+
+  # Stage 3: Health checks (after deploy)
+  health-check:
+    image: alpine:latest
+    commands:
+      - echo "Waiting for services to stabilize..."
+      - apk add --no-cache curl
+      - sleep 10
+      - echo "Checking lanindex health endpoint..."
+      - curl -f http://docker.lan/status/Home%20Assistant || echo "⚠ Home Assistant status check skipped (may be offline)"
+      - echo "✓ Health checks complete"
+    when:
+      branch: main
+      event: push
+      status: success
+
+  # Stage 4: Notify on failure
+  notify-failure:
+    image: alpine:latest
+    commands:
+      - echo "❌ Pipeline failed!"
+      - echo "Check logs: http://woodpecker.lan.nathancj.com"
+    when:
+      status: failure

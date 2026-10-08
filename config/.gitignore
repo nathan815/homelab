@@ -1,0 +1,7 @@
+# Generated files (don't commit)
+deploy.yml
+.env
+.env.local
+
+# Kamal runtime files
+.kamal/
