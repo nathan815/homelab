@@ -7,6 +7,7 @@ services:
   lanindex:
     image: ncr.lan:80/lanindex
     platform: linux/arm64
+    pull_policy: always
     container_name: lanindex
     restart: always
     ports:

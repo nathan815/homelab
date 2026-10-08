@@ -1,0 +1,39 @@
+# Komodo Resource Sync: declares servers and stacks for the homelab.
+# Applied by the "homelab" resource_sync below (Komodo UI: Syncs -> homelab).
+# Stack compose files live in stacks/<name>/ in this repo.
+# Docs: https://komo.do/docs/automate/sync-resources
+
+[[server]]
+name = "pi01"
+
+[server.config]
+address = "https://pi01.lan:8120"
+enabled = true
+
+[[stack]]
+name = "lanindex"
+deploy = true
+tags = ["core"]
+
+[stack.config]
+server = "pi01"
+git_account = "nathan815"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/lanindex"
+file_paths = ["docker-compose.yml"]
+# Written to the stack's .env (replaces stacks/*/.env.defaults for Komodo stacks)
+environment = """
+LANINDEX_PORT = 8500
+"""
+
+# The sync itself. Create it once in the UI (see komodo/README.md), then it
+# keeps this file's resources in line with git.
+[[resource_sync]]
+name = "homelab"
+
+[resource_sync.config]
+git_account = "nathan815"
+repo = "nathan815/homelab"
+branch = "main"
+resource_path = ["komodo/komodo.toml"]
