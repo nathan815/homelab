@@ -8,7 +8,13 @@
 2. **Periphery on pi01**: the `pi01` server only works if a Komodo Periphery agent answers at `https://pi01.lan:8120`. The compose in `stacks/komodo/` does not run one; install it (see Komodo docs) before syncing.
 3. **Create the sync**: Syncs -> New -> name `homelab`, repo `nathan815/homelab`, branch `main`, resource path `komodo/komodo.toml`. Review the diff, then Execute.
 4. **API key for CI**: Settings -> API keys -> create one. Add it to Woodpecker as repo secrets `komodo_api_key` and `komodo_api_secret`.
-5. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
+5. **Woodpecker** (push events only): in the repo's settings turn OFF "Allow pull requests" (public repo, self-hosted agent). GitHub must be able to reach Woodpecker's `/api/hook` for the `deployment` event, so a public route to just that path is required (not set up yet).
+6. **ghcr.io package**: after the first `lanindex` workflow run, set the package visibility to public so pi01 can pull without credentials.
+7. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
 
 ## Migrating a stack
 Add a `[[stack]]` block, sync, deploy in Komodo, confirm, then remove the stack from `ansible/playbooks/*.yml` (and `docker compose down` the old copy under `/opt/stacks` if Komodo uses another path).
+
+## Flow (lanindex)
+push to main -> GitHub Actions builds arm64 image, pushes `ghcr.io/nathan815/lanindex` -> creates a GitHub deployment -> Woodpecker (`.woodpecker/deploy-lanindex.yaml`, deployment event) -> Komodo `DeployStack` -> pi01 pulls and restarts.
+PRs run `.github/workflows/validate.yml` only (GitHub-hosted, no secrets).

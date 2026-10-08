@@ -1,0 +1,22 @@
+# Runs when .github/workflows/lanindex.yml has pushed the image and created a
+# GitHub deployment. Only deployment events: PRs are disabled for this repo.
+when:
+  - event: deployment
+    environment: production
+    evaluate: 'CI_PIPELINE_DEPLOY_TASK == "deploy:lanindex"'
+
+steps:
+  deploy:
+    image: curlimages/curl
+    environment:
+      KOMODO_API_KEY:
+        from_secret: komodo_api_key
+      KOMODO_API_SECRET:
+        from_secret: komodo_api_secret
+    commands:
+      - >
+        curl -fsS -X POST http://pi01.lan:9120/execute/DeployStack
+        -H "Content-Type: application/json"
+        -H "X-Api-Key: $KOMODO_API_KEY"
+        -H "X-Api-Secret: $KOMODO_API_SECRET"
+        -d '{"stack": "lanindex"}'
