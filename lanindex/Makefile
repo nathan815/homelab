@@ -1,9 +1,11 @@
 TAG=latest
+# buildx builder configured to allow plain-HTTP pushes to ncr.lan
+BUILDER=mybuilder
 
 .PHONY: docker-build-push docker-run ansible-deploy-playbook deploy
 
 docker-deployment-build:
-	docker buildx build -t ncr.lan/lanindex:${TAG} --platform=linux/amd64 --platform=linux/arm64 --platform=linux/arm/v7 --push --output=type=registry,registry.insecure=true .
+	docker buildx build --builder ${BUILDER} -t ncr.lan/lanindex:${TAG} --platform=linux/arm64 --push --output=type=registry,registry.insecure=true .
 
 docker-build:
 	docker build -t lanindex .
