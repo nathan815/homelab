@@ -19,6 +19,8 @@ services:
       - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
       - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      # Server-only key for signing gRPC JWTs; persisted so tokens survive restarts
+      - WOODPECKER_GRPC_SECRET=${WOODPECKER_GRPC_SECRET}
     networks:
       - woodpecker
 
