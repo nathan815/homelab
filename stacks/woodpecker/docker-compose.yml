@@ -12,6 +12,9 @@ services:
       - woodpecker-server-data:/var/lib/woodpecker
     environment:
       - WOODPECKER_HOST=${WOODPECKER_HOST}
+      - WOODPECKER_ADMIN=${WOODPECKER_ADMIN}
+      # Webhook URL GitHub calls (public, via cloudflared + nginx-public); UI/OAuth stay on WOODPECKER_HOST
+      - WOODPECKER_EXPERT_WEBHOOK_HOST=${WOODPECKER_WEBHOOK_HOST}
       - WOODPECKER_GITHUB=true
       - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
       - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
