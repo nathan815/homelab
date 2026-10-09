@@ -1,0 +1,145 @@
+# Komodo Resource Sync: declares servers, stacks and other resources.
+# Applied by the "homelab" resource_sync (Komodo UI: Syncs -> homelab).
+#
+# IMPORTANT: a sync makes Komodo match this file; resources that exist in Komodo
+# but are not declared here may be proposed for deletion. This file was seeded from the live Komodo config on 2026-10-09,
+# so everything that existed is listed. Always review the sync's pending diff
+# before pressing Execute. Add new resources here before creating them in the UI.
+#
+# Stacks with `files_on_host = true` read compose files from /opt/stacks/<name>
+# on the host (copied there by Ansible's deploy-stack role). Git-backed stacks
+# (lanindex) are the target model: see #4 / #5.
+
+[[server]]
+name = "docker-main"
+[server.config]
+address = "http://docker.lan:8120"
+enabled = true
+
+##
+
+[[server]]
+name = "pi01"
+[server.config]
+address = "http://pi01.lan:8120"
+enabled = true
+
+##
+
+# Git-backed: compose files come from this repo, image from ghcr.io (deployed by
+# Woodpecker via .github/workflows/lanindex.yml).
+[[stack]]
+name = "lanindex"
+tags = ["core"]
+[stack.config]
+server = "pi01"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/lanindex"
+file_paths = ["docker-compose.yml"]
+# Written to the stack's .env (replaces stacks/*/.env.defaults for Komodo stacks)
+environment = """
+LANINDEX_PORT = 8500
+"""
+
+##
+
+[[stack]]
+name = "adguardhome"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+files_on_host = true
+file_paths = ["docker-compose.yml"]
+
+##
+
+# NOTE: runs Periphery itself. Redeploying this from Komodo restarts the agent
+# mid-operation; prefer deploying it via Ansible/manual compose.
+[[stack]]
+name = "container-mgmt:docker-main"
+[stack.config]
+server = "docker-main"
+project_name = "container-mgmt"
+poll_for_updates = true
+files_on_host = true
+run_directory = "/opt/stacks/container-mgmt"
+file_paths = ["docker-compose.yml"]
+
+##
+
+[[stack]]
+name = "container-mgmt:pi01"
+[stack.config]
+server = "pi01"
+project_name = "container-mgmt"
+poll_for_updates = true
+files_on_host = true
+run_directory = "/opt/stacks/container-mgmt"
+file_paths = ["docker-compose.yml"]
+
+##
+
+[[stack]]
+name = "media-system"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+files_on_host = true
+file_paths = ["docker-compose.yml"]
+
+##
+
+# NOTE: the repo has no stacks/monitoring/ (monitoring is an Ansible role that
+# writes ~/monitoring), so this stack has no compose file to read. See #7.
+[[stack]]
+name = "monitoring"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+files_on_host = true
+file_paths = ["docker-compose.yml"]
+
+##
+
+[[stack]]
+name = "nginx-proxy"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+files_on_host = true
+file_paths = ["docker-compose.yml"]
+
+##
+
+# TEMP: test resources from setup; delete these (and their Komodo copies) once unused.
+[[stack]]
+name = "test-komodo-stack"
+[stack.config]
+server = "pi01"
+file_contents = """
+## 🦎 Hello Komodo 🦎
+services:
+  hello_world:
+    image: hello-world
+"""
+
+##
+
+[[deployment]]
+name = "test"
+[deployment.config]
+server = "docker-main"
+
+##
+
+[[builder]]
+name = "local"
+[builder.config]
+type = "Server"
+params = {}
+
+# The "homelab" resource_sync itself is deliberately NOT declared here: a sync
+# can't update its own resource while it is running ("resource busy"). It is
+# defined once in the Komodo UI; its config is recorded in komodo/bootstrap.toml
+# (not read by this sync) so it can be recreated.

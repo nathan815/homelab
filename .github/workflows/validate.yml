@@ -1,0 +1,38 @@
+# PR + main validation on GitHub-hosted runners (no LAN access, no secrets).
+name: Validate
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Compose, shell, YAML, Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: docker compose config
+        run: |
+          for f in stacks/*/docker-compose.yml; do
+            echo "Checking $f"
+            if [ ! -s "$f" ]; then echo "::warning file=$f::empty compose file, skipping"; continue; fi
+            # Fill unset ${VAR}s from .env.defaults so config renders
+            env_file=$(dirname "$f")/.env.defaults
+            if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
+          done
+      - name: shellcheck
+        run: shellcheck --severity=error stacks/*.sh
+      - name: yamllint
+        run: pipx run yamllint -d relaxed ansible .woodpecker .github
+      - name: ansible-lint (advisory, existing roles have violations)
+        continue-on-error: true
+        working-directory: ansible
+        run: |
+          pip install --quiet "ansible>=10" ansible-lint
+          ansible-galaxy role install -r requirements.yml
+          ansible-lint playbooks/

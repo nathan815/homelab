@@ -1,5 +1,6 @@
 ---
-- hosts: pi01
+- name: Core services on pi01
+  hosts: pi01
   roles:
     - role: deploy-stack
       vars:
@@ -59,11 +60,12 @@
 
     # - role: upsnap
     #   tags: upsnap
-    
+
     # - role: lanindex
     #   tags: lanindex
 
-- hosts: docker.lan
+- name: Docker registry on docker.lan
+  hosts: docker.lan
   roles:
     - role: deploy-stack
       vars:

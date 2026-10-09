@@ -1,0 +1,43 @@
+# Runs when .github/workflows/lanindex.yml has validated, pushed the image and
+# created a GitHub deployment. Only deployment events: PRs are disabled for this repo.
+# Woodpecker 3 has no `environment` filter, so the target is checked via evaluate.
+when:
+  - event: deployment
+    evaluate: 'CI_PIPELINE_DEPLOY_TARGET == "production" && CI_PIPELINE_DEPLOY_TASK == "deploy:lanindex"'
+
+steps:
+  deploy:
+    image: alpine:3
+    environment:
+      KOMODO_API_KEY:
+        from_secret: komodo_api_key
+      KOMODO_API_SECRET:
+        from_secret: komodo_api_secret
+    commands:
+      - apk add --no-cache curl jq
+      # Komodo's execute call returns as soon as the update is created, so poll
+      # the update until it completes and fail the step unless it succeeded.
+      - |
+        set -eu
+        api=http://pi01.lan:9120
+        call() {
+          curl -fsS -X POST "$api/$1" \
+            -H "Content-Type: application/json" \
+            -H "X-Api-Key: $KOMODO_API_KEY" \
+            -H "X-Api-Secret: $KOMODO_API_SECRET" \
+            -d "$2"
+        }
+        update=$(call execute '{"type":"DeployStack","params":{"stack":"lanindex"}}')
+        id=$(echo "$update" | jq -er '._id["$oid"]')
+        echo "Komodo update $id started"
+        for i in $(seq 1 60); do
+          u=$(call read "{\"type\":\"GetUpdate\",\"params\":{\"id\":\"$id\"}}")
+          if [ "$(echo "$u" | jq -r .status)" = "Complete" ]; then
+            echo "$u" | jq -r '.logs[]? | "[\(.stage)] \(.stdout) \(.stderr)"'
+            [ "$(echo "$u" | jq -r .success)" = "true" ]
+            exit $?
+          fi
+          sleep 5
+        done
+        echo "Timed out waiting for Komodo update $id" >&2
+        exit 1

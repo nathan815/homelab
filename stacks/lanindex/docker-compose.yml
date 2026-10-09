@@ -5,8 +5,9 @@ services:
 
   # Home Index - http://home.lan/
   lanindex:
-    image: ncr.lan:80/lanindex
+    image: ghcr.io/nathan815/lanindex:latest
     platform: linux/arm64
+    pull_policy: always
     container_name: lanindex
     restart: always
     ports:

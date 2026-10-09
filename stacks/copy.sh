@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 HOST=$1
 
 SCRIPT_DIR=$(dirname "$0")
