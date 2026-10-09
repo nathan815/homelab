@@ -5,7 +5,7 @@
 ## One-time setup (Komodo UI, http://komodo.lan.nathancj.com)
 
 1. **Git access**: none needed, the repo is public. If it ever goes private, add a GitHub account under Settings -> Providers and set `git_account` on the stacks and sync.
-2. **Periphery**: each server in `komodo.toml` needs a Periphery agent answering at its `address` (pi01: `https://pi01.lan:8120`). Periphery is installed outside this repo (not defined in `stacks/komodo/`), so confirm each server shows as connected in Komodo before syncing.
+2. **Periphery** runs on each host as `komodo-periphery` in the `container-mgmt` stack (deployed by `ansible/playbooks/base.yml`, image pinned to `ghcr.io/mbecker20/periphery:1.16`, port 8120, auth via `KOMODO_PASSKEY`). Confirm the `pi01` server shows as connected in Komodo before syncing. Note Periphery's `PERIPHERY_STACK_DIR` is `/opt/stacks`, the same directory Ansible's `deploy-stack` role and Dockge use: check where Komodo writes a git-backed stack before migrating one, so the two don't fight over `/opt/stacks/<name>`.
 3. **Create the sync**: Syncs -> New -> name `homelab`, repo `nathan815/homelab`, branch `main`, resource path `komodo/komodo.toml`. Review the diff, then Execute.
 4. **API key for CI**: Settings -> API keys -> create one. Add it to Woodpecker as repo secrets `komodo_api_key` and `komodo_api_secret`.
 5. **Woodpecker** (push events only): in the repo's settings turn OFF "Allow pull requests" (public repo, self-hosted agent). GitHub must be able to reach Woodpecker's `/api/hook` for the `deployment` event, so a public route to just that path is required (not set up yet).
