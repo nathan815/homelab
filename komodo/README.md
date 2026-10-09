@@ -13,7 +13,11 @@
 7. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
 
 ## Migrating a stack
-Add a `[[stack]]` block, sync, deploy in Komodo, confirm, then remove the stack from `ansible/playbooks/*.yml` (and `docker compose down` the old copy under `/opt/stacks` if Komodo uses another path).
+Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same directory Ansible's `deploy-stack` role copies to. Neither tool can use the folder while the other's copy is there (a plain-files folder makes Komodo fail with "not a git repository" / "Failed to write / clone compose file"). Per stack:
+1. Add a `[[stack]]` block (git mode) and sync.
+2. Remove the stack from `ansible/playbooks/*.yml` so Ansible stops writing to it.
+3. On the host, move the Ansible-copied folder aside: `sudo mv /opt/stacks/<stack> /opt/stacks/<stack>.ansible-bak` (the running containers are unaffected).
+4. Redeploy from Komodo, confirm, then delete the `.ansible-bak` folder.
 
 ## Flow (lanindex)
 push to main -> GitHub Actions builds arm64 image, pushes `ghcr.io/nathan815/lanindex` -> creates a GitHub deployment -> Woodpecker (`.woodpecker/deploy-lanindex.yaml`, deployment event) -> Komodo `DeployStack` (the step polls the update until it completes and fails if it didn't succeed) -> pi01 pulls and restarts.

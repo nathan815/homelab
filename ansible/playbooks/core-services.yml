@@ -30,11 +30,6 @@
 
     - role: deploy-stack
       vars:
-        stack_name: lanindex
-      tags: lanindex
-
-    - role: deploy-stack
-      vars:
         stack_name: upsnap
       tags: upsnap
 
@@ -60,9 +55,6 @@
 
     # - role: upsnap
     #   tags: upsnap
-
-    # - role: lanindex
-    #   tags: lanindex
 
 - name: Docker registry on docker.lan
   hosts: docker.lan
