@@ -1,0 +1,23 @@
+services:
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    # Remotely-managed tunnel: public hostnames/ingress rules are configured in
+    # the Cloudflare Zero Trust dashboard (Networks > Tunnels), not in this repo.
+    command: tunnel --no-autoupdate --metrics 127.0.0.1:2000 run
+    # Default bridge network: ingress rules target LAN addresses (e.g. http://pi01.lan:8000),
+    # so the container needs no shared networks or host networking.
+    restart: always
+    read_only: true
+    cap_drop:
+      - all
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:2000", "ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
