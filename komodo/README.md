@@ -13,7 +13,8 @@
 7. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
 
 ## Migrating a stack
-Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same directory Ansible's `deploy-stack` role copies to. Neither tool can use the folder while the other's copy is there (a plain-files folder makes Komodo fail with "not a git repository" / "Failed to write / clone compose file"). Per stack:
+Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same directory Ansible's `deploy-stack` role copies to. Neither tool can use the folder while the other's copy is there (a plain-files folder makes Komodo fail with "not a git repository" / "Failed to write / clone compose file"). **Stacks with runtime data in the stack folder (relative `./data/...` mounts: `media-system`, `adguardhome`, `container-mgmt`, `dashkiosk`, `upsnap`, `viewtube`) must NOT be migrated this way yet.** Moving the folder aside takes the data with it, and the service would start empty; in git mode the folder is also Komodo's to re-clone. Move the data to a host path outside `/opt/stacks` first (tracked in #9). `lanindex` has no volumes and is safe. Per stack:
+0. Check the stack's compose file for relative `./data` mounts; if any, do #9 for it first.
 1. Add a `[[stack]]` block (git mode) and sync.
 2. Remove the stack from `ansible/playbooks/*.yml` so Ansible stops writing to it.
 3. On the host, move the Ansible-copied folder aside: `sudo mv /opt/stacks/<stack> /opt/stacks/<stack>.ansible-bak` (the running containers are unaffected).
