@@ -1,9 +1,8 @@
 # Komodo Resource Sync: declares servers, stacks and other resources.
-# Applied by the "homelab" resource_sync at the bottom (Komodo UI: Syncs -> homelab).
+# Applied by the "homelab" resource_sync (Komodo UI: Syncs -> homelab).
 #
-# IMPORTANT: executing a sync makes Komodo match this file, which means
-# resources that exist in Komodo but are NOT declared here get proposed for
-# deletion. This file was seeded from the live Komodo config on 2026-10-09,
+# IMPORTANT: a sync makes Komodo match this file; resources that exist in Komodo
+# but are not declared here may be proposed for deletion. This file was seeded from the live Komodo config on 2026-10-09,
 # so everything that existed is listed. Always review the sync's pending diff
 # before pressing Execute. Add new resources here before creating them in the UI.
 #
@@ -140,11 +139,7 @@ name = "local"
 type = "Server"
 params = {}
 
-##
-
-[[resource_sync]]
-name = "homelab"
-[resource_sync.config]
-repo = "nathan815/homelab"
-webhook_enabled = false
-resource_path = ["komodo/komodo.toml"]
+# The "homelab" resource_sync itself is deliberately NOT declared here: a sync
+# can't update its own resource while it is running ("resource busy"). It is
+# defined once in the Komodo UI (repo nathan815/homelab, path komodo/komodo.toml,
+# branch main) and edited there.
