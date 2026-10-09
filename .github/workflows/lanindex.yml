@@ -14,8 +14,13 @@ permissions:
   deployments: write
 
 jobs:
+  validate:
+    name: Validate
+    uses: ./.github/workflows/validate.yml
+
   lanindex:
     name: lanindex image
+    needs: validate
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +41,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # required_contexts is empty on purpose: validation already gates this job
+          # via needs: validate, and the default would also wait on unrelated
+          # statuses (Woodpecker, Socket) and refuse to create the deployment.
           gh api -X POST "repos/${{ github.repository }}/deployments" \
             -f ref="${{ github.sha }}" -f environment=production \
             -f task="deploy:lanindex" -F auto_merge=false \
