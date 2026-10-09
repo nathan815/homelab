@@ -1,7 +1,7 @@
 ---
 - name: Verify that required string variables are defined
   assert:
-    that: 
+    that:
       - "{{ var_name }} is defined"
       - "{{ var_name }} | length > 0"
       - "{{ var_name }} != None"
