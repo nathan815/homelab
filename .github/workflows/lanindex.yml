@@ -1,7 +1,7 @@
 # Build the lanindex image on GitHub's hosted arm64 runner, push to ghcr.io,
 # then create a GitHub deployment. Woodpecker listens for that deployment
 # event and tells Komodo to redeploy (.woodpecker/deploy-lanindex.yaml).
-name: lanindex
+name: Build & deploy
 
 on:
   push:
@@ -14,7 +14,8 @@ permissions:
   deployments: write
 
 jobs:
-  build-deploy:
+  lanindex:
+    name: lanindex image
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4

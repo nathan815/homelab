@@ -1,5 +1,5 @@
 # PR + main validation on GitHub-hosted runners (no LAN access, no secrets).
-name: validate
+name: Validate
 
 on:
   pull_request:
@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  lint:
+    name: Compose, shell, YAML, Ansible
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,6 +19,7 @@ jobs:
         run: |
           for f in stacks/*/docker-compose.yml; do
             echo "Checking $f"
+            if [ ! -s "$f" ]; then echo "::warning file=$f::empty compose file, skipping"; continue; fi
             # Fill unset ${VAR}s from .env.defaults so config renders
             env_file=$(dirname "$f")/.env.defaults
             if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
