@@ -8,6 +8,11 @@
 
     - role: deploy-stack
       vars:
+        stack_name: cloudflared
+      tags: cloudflared
+
+    - role: deploy-stack
+      vars:
         stack_name: dashkiosk
       tags: dashkiosk
 

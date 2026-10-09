@@ -29,6 +29,7 @@ servers:
     user: nathan
     services:
       - woodpecker
+      - cloudflared
 
   octoprint:
     host: octoprint.lan
@@ -50,6 +51,7 @@ secrets:
   - ADGUARD_PASSWORD
   - GITHUB_CLIENT_SECRET
   - WOODPECKER_AGENT_SECRET
+  - TUNNEL_TOKEN
 
 # Default healthcheck (can be overridden per service)
 default_healthcheck:
