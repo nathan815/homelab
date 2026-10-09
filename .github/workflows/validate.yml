@@ -31,4 +31,8 @@ jobs:
         run: pipx run yamllint -d relaxed ansible .woodpecker .github
       - name: ansible-lint (advisory, existing roles have violations)
         continue-on-error: true
-        run: pipx run ansible-lint ansible/playbooks/
+        working-directory: ansible
+        run: |
+          pip install --quiet "ansible>=10" ansible-lint
+          ansible-galaxy role install -r requirements.yml
+          ansible-lint playbooks/
