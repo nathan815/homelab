@@ -141,5 +141,5 @@ params = {}
 
 # The "homelab" resource_sync itself is deliberately NOT declared here: a sync
 # can't update its own resource while it is running ("resource busy"). It is
-# defined once in the Komodo UI (repo nathan815/homelab, path komodo/komodo.toml,
-# branch main) and edited there.
+# defined once in the Komodo UI; its config is recorded in komodo/bootstrap.toml
+# (not read by this sync) so it can be recreated.

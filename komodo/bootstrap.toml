@@ -1,0 +1,15 @@
+# One-time bootstrap: the resource sync that reads komodo/komodo.toml.
+#
+# NOT read by that sync (its resource_path is only komodo/komodo.toml): a sync
+# can't update its own resource while running ("resource busy"). Use this to
+# (re)create the sync on a fresh Komodo, e.g. enter these values in the UI
+# (Syncs -> New) or apply this file once from a local checkout.
+# Keep it in step with the live sync config by hand.
+
+[[resource_sync]]
+name = "homelab"
+[resource_sync.config]
+repo = "nathan815/homelab"
+branch = "main"
+webhook_enabled = false
+resource_path = ["komodo/komodo.toml"]
