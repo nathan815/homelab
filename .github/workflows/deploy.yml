@@ -1,0 +1,130 @@
+# Generic deploy for every git-backed Komodo stack (komodo/komodo.toml).
+#
+# push to main: validate, then for each stack whose stacks/<name>/ or
+# apps/<name>/ changed, build apps/<name>/Dockerfile (if any) to
+# ghcr.io/<owner>/<name>:<sha> and create a GitHub deployment with task
+# deploy:<name>. Woodpecker (.woodpecker/deploy.yaml) picks the deployment up
+# and runs ci/komodo-deploy.sh, which pins the stack to <sha> and deploys it.
+#
+# workflow_dispatch: redeploy one stack at any ref. Also the rollback: dispatch
+# an older sha. Komodo always reads compose files from main, so a branch
+# dispatch changes the image only, never the compose file.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: Stack name (stacks/<name>, git-backed in komodo/komodo.toml)
+        required: true
+        type: string
+      ref:
+        description: Branch, tag or commit sha to deploy
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  validate:
+    name: Validate
+    uses: ./.github/workflows/validate.yml
+
+  plan:
+    name: Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.plan.outputs.stacks }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          STACK: ${{ inputs.stack }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          if [ "$EVENT" = workflow_dispatch ]; then
+            stacks=$(python3 .github/scripts/deploy_plan.py stack "$STACK")
+          else
+            stacks=$(python3 .github/scripts/deploy_plan.py changed "$BEFORE" "$sha")
+          fi
+          echo "Deploying $stacks at $sha"
+          echo "stacks=$stacks" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: ${{ matrix.stack }}
+    needs: plan
+    if: needs.plan.outputs.stacks != '[]'
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJSON(needs.plan.outputs.stacks) }}
+    # One deploy per stack at a time, queued in push order.
+    concurrency:
+      group: deploy-${{ matrix.stack }}
+      cancel-in-progress: false
+    env:
+      SHA: ${{ needs.plan.outputs.sha }}
+      IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.stack }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - id: app
+        run: |
+          if [ -f "apps/${{ matrix.stack }}/Dockerfile" ]; then echo "build=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.app.outputs.build
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.app.outputs.build
+        id: exists
+        # A rollback or re-run deploys a sha that's already built; don't rebuild it.
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:$SHA" > /dev/null 2>&1; then
+            echo "$IMAGE:$SHA already exists, skipping build"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.app.outputs.build && !steps.exists.outputs.found
+        uses: docker/setup-buildx-action@v3
+      - if: steps.app.outputs.build && !steps.exists.outputs.found
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/${{ matrix.stack }}
+          platforms: linux/arm64
+          push: true
+          # :latest only follows main; deploys use the sha tag.
+          tags: |
+            ${{ env.IMAGE }}:${{ env.SHA }}
+            ${{ github.event_name == 'push' && format('{0}:latest', env.IMAGE) || '' }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.stack }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.stack }}
+      - name: Create GitHub deployment (triggers Woodpecker)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # required_contexts is empty on purpose: validation already gates this job
+          # via needs, and the default would also wait on unrelated statuses
+          # (Woodpecker, Socket) and refuse to create the deployment.
+          gh api -X POST "repos/${{ github.repository }}/deployments" \
+            -f ref="$SHA" -f environment=production \
+            -f task="deploy:${{ matrix.stack }}" -F auto_merge=false \
+            -f description="${{ github.event_name }} by ${{ github.actor }}" \
+            -F 'required_contexts[]'
