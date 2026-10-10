@@ -25,6 +25,13 @@ jobs:
             env_file=$(dirname "$f")/.env.defaults
             if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
           done
+      - name: promtool / blackbox config check (monitoring)
+        run: |
+          # --syntax-only: the HA token credentials_file only exists at runtime
+          docker run --rm -v "$PWD/stacks/monitoring:/work:ro" --entrypoint /bin/promtool \
+            prom/prometheus check config --syntax-only /work/prometheus/prometheus.yml
+          docker run --rm -v "$PWD/stacks/monitoring/blackbox/config:/config:ro" \
+            prom/blackbox-exporter --config.file=/config/blackbox.yml --config.check
       - name: shellcheck
         run: shellcheck --severity=error stacks/*.sh
       - name: yamllint

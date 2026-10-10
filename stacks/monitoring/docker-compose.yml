@@ -9,7 +9,8 @@ services:
   uptime-kuma:
     image: louislam/uptime-kuma:2.0.0-beta-slim.1
     volumes:
-      - /opt/stacks/monitoring/uptimekuma_data:/app/data
+      # Outside /opt/stacks/monitoring: Komodo owns that folder (git clone)
+      - /mnt/data1/monitoring-data/uptime-kuma:/app/data
     ports:
       - 3002:3001
     restart: unless-stopped
@@ -23,11 +24,13 @@ services:
       - '--web.enable-admin-api'
       - '--storage.tsdb.retention.time=365d'
     ports:
-      - "{{ monitoring_prometheus_port }}:9090"
+      - "${PROMETHEUS_PORT}:9090"
     restart: always
     volumes:
       - ./prometheus:/etc/prometheus
       - /mnt/data1/monitoring-data/prometheus:/prometheus
+    secrets:
+      - home_assistant_token
     networks:
       - back-tier
     healthcheck:
@@ -38,13 +41,14 @@ services:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - "{{ monitoring_grafana_port }}:3000"
+      - "${GRAFANA_PORT}:3000"
     restart: always
     depends_on:
       - prometheus
     environment:
-      - GF_SECURITY_ADMIN_USER={{ monitoring_grafana_admin_username }}
-      - GF_SECURITY_ADMIN_PASSWORD={{ monitoring_grafana_admin_password }}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      # Password only applies when Grafana creates its database (first start)
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD?set GRAFANA_ADMIN_PASSWORD}
       - GF_SECURITY_ALLOW_EMBEDDING=true
       #- GF_SECURITY_COOKIE_SAMESITE=none
       #- GF_SECURITY_COOKIE_SECURE=true
@@ -97,3 +101,11 @@ services:
 
 volumes:
   grafana_data:
+    # Pinned to the name the Ansible-deployed project (~/monitoring) created
+    name: monitoring_grafana_data
+
+secrets:
+  # Mounted at /run/secrets/home_assistant_token (read via credentials_file in
+  # prometheus.yml). Value comes from the stack's .env, never committed.
+  home_assistant_token:
+    environment: HOME_ASSISTANT_TOKEN

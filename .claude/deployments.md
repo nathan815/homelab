@@ -64,7 +64,7 @@ Run from `ansible/` directory. Assumes an Ansible docker container is built; use
 ```
 
 ### `core-services.yml`
-- **What**: NGINX proxy, monitoring stack (Prometheus, Grafana, Speedtest)
+- **What**: NGINX proxy and other pi01 stacks (monitoring is Komodo-managed: `stacks/monitoring`)
 - **When**: Initializing docker.lan
 - **Requirement**: Run `base.yml` first
 
