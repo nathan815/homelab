@@ -48,9 +48,9 @@ The services I'm currently locally running include:
 
 ## LAN Home Page
 
-I have a small python site at home.lan with shortcuts + live status indicator for each service/site in my LAN. Source code at [./lanindex](./lanindex). It is deployed as a docker container on pi01 and behind nginx proxy.
+I have a small python site at home.lan with shortcuts + live status indicator for each service/site in my LAN. Source code at [./apps/lanindex](./apps/lanindex). It is deployed as a docker container on pi01 and behind nginx proxy.
 
-<img width="1680" alt="Screenshot 2024-03-17 at 10 46 29 PM" src="./lanindex/docs/screenshot.png">
+<img width="1680" alt="Screenshot 2024-03-17 at 10 46 29 PM" src="./apps/lanindex/docs/screenshot.png">
 
 
 ## More details

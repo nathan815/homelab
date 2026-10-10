@@ -1,11 +1,10 @@
-# PR + main validation on GitHub-hosted runners (no LAN access, no secrets).
+# PR validation on GitHub-hosted runners (no LAN access, no secrets).
+# Pushes to main run it via deploy.yml, which gates deploys on it.
 name: Validate
 
 on:
   workflow_call:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -26,7 +25,10 @@ jobs:
             if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
           done
       - name: shellcheck
-        run: shellcheck --severity=error stacks/*.sh
+        run: shellcheck --severity=error stacks/*.sh ci/*.sh
+      - name: deployable stacks
+        run: |
+          echo "Deployable: $(python3 .github/scripts/deploy_plan.py list)"
       - name: yamllint
         run: pipx run yamllint -d relaxed ansible .woodpecker .github
       - name: ansible-lint (advisory, existing roles have violations)

@@ -5,7 +5,8 @@ services:
 
   # Home Index - http://home.lan/
   lanindex:
-    image: ghcr.io/nathan815/lanindex:latest
+    # IMAGE_TAG is the deployed commit sha, set by Komodo (komodo/komodo.toml)
+    image: ghcr.io/nathan815/lanindex:${IMAGE_TAG:-latest}
     platform: linux/arm64
     pull_policy: always
     container_name: lanindex

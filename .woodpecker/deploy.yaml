@@ -1,0 +1,21 @@
+# Runs for the GitHub deployments .github/workflows/deploy.yml creates, one per
+# stack, with task deploy:<stack>. Only deployment events: PRs are disabled for
+# this repo. Woodpecker 3 has no `environment` filter, so target and task are
+# checked via evaluate.
+when:
+  - event: deployment
+    evaluate: 'CI_PIPELINE_DEPLOY_TARGET == "production" && CI_PIPELINE_DEPLOY_TASK startsWith "deploy:"'
+
+steps:
+  deploy:
+    image: alpine:3
+    environment:
+      KOMODO_URL: http://pi01.lan:9120
+      KOMODO_API_KEY:
+        from_secret: komodo_api_key
+      KOMODO_API_SECRET:
+        from_secret: komodo_api_secret
+    # The logic lives in a script: Woodpecker pre-processes ${...} in commands.
+    commands:
+      - apk add --no-cache curl jq
+      - sh ci/komodo-deploy.sh

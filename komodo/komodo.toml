@@ -8,7 +8,8 @@
 #
 # Stacks with `files_on_host = true` read compose files from /opt/stacks/<name>
 # on the host (copied there by Ansible's deploy-stack role). Git-backed stacks
-# (lanindex) are the target model: see #4 / #5.
+# (lanindex) are the target model: CI deploys any stack declared with
+# `repo` and `run_directory = "stacks/<name>"` (see komodo/README.md).
 
 [[server]]
 name = "docker-main"
@@ -26,8 +27,8 @@ enabled = true
 
 ##
 
-# Git-backed: compose files come from this repo, image from ghcr.io (deployed by
-# Woodpecker via .github/workflows/lanindex.yml).
+# Git-backed: compose files come from this repo, image from ghcr.io (built from
+# apps/lanindex and deployed by .github/workflows/deploy.yml + Woodpecker).
 [[stack]]
 name = "lanindex"
 tags = ["core"]
@@ -38,8 +39,10 @@ branch = "main"
 run_directory = "stacks/lanindex"
 file_paths = ["docker-compose.yml"]
 # Written to the stack's .env (replaces stacks/*/.env.defaults for Komodo stacks)
+# LANINDEX_IMAGE_TAG is a Komodo variable CI sets to the deployed commit sha.
 environment = """
 LANINDEX_PORT = 8500
+IMAGE_TAG = [[LANINDEX_IMAGE_TAG]]
 """
 
 ##
