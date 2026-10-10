@@ -8,7 +8,7 @@
 #
 # Stacks with `files_on_host = true` read compose files from /opt/stacks/<name>
 # on the host (copied there by Ansible's deploy-stack role). Git-backed stacks
-# (lanindex) are the target model: see #4 / #5.
+# (lanindex, monitoring) are the target model: see #4 / #5.
 
 [[server]]
 name = "docker-main"
@@ -90,15 +90,25 @@ file_paths = ["docker-compose.yml"]
 
 ##
 
-# NOTE: the repo has no stacks/monitoring/ (monitoring is an Ansible role that
-# writes ~/monitoring), so this stack has no compose file to read. See #7.
+# Git-backed (was an Ansible role, see #7). Secrets are Komodo secret variables
+# (Settings -> Variables), interpolated into the stack's .env at deploy time.
 [[stack]]
 name = "monitoring"
+tags = ["core"]
 [stack.config]
 server = "pi01"
 poll_for_updates = true
-files_on_host = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/monitoring"
 file_paths = ["docker-compose.yml"]
+environment = """
+PROMETHEUS_PORT = 3001
+GRAFANA_PORT = 3000
+GRAFANA_ADMIN_USER = admin
+GRAFANA_ADMIN_PASSWORD = [[GRAFANA_ADMIN_PASSWORD]]
+HOME_ASSISTANT_TOKEN = [[HOME_ASSISTANT_TOKEN]]
+"""
 
 ##
 

@@ -20,6 +20,13 @@ Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same
 3. On the host, move the Ansible-copied folder aside: `sudo mv /opt/stacks/<stack> /opt/stacks/<stack>.ansible-bak` (the running containers are unaffected).
 4. Redeploy from Komodo, confirm, then delete the `.ansible-bak` folder.
 
+### monitoring (one-off, #7)
+Was the `monitoring-server` Ansible role (rendered into `~/monitoring`, compose project `monitoring`). Data lives outside the stack folder: Prometheus in `/mnt/data1/monitoring-data/prometheus`, Grafana in the named volume `monitoring_grafana_data` (pinned in the compose file). Uptime Kuma used to live in `/opt/stacks/monitoring/uptimekuma_data`, which is now Komodo's clone target, so it moves. On pi01:
+1. Back up: `sudo tar czf ~/monitoring-backup.tgz /opt/stacks/monitoring /mnt/data1/monitoring-data` and `docker run --rm -v monitoring_grafana_data:/v -v ~/:/b alpine tar czf /b/grafana_data.tgz -C /v .`
+2. In Komodo, Settings -> Variables: add secret variables `GRAFANA_ADMIN_PASSWORD` (only used if Grafana's DB is ever recreated) and `HOME_ASSISTANT_TOKEN` (same value as `secrets.home_assistant_token` in Ansible).
+3. `cd ~/monitoring && docker compose down`, then `sudo mkdir -p /mnt/data1/monitoring-data && sudo mv /opt/stacks/monitoring/uptimekuma_data /mnt/data1/monitoring-data/uptime-kuma` and `sudo mv /opt/stacks/monitoring /opt/stacks/monitoring.ansible-bak`.
+4. Sync, then Deploy `monitoring` in Komodo. Check Grafana dashboards, Prometheus targets (incl. `homeassistant_sensors`) and Uptime Kuma monitors, then delete `~/monitoring` and the `.ansible-bak` folder.
+
 ## Flow (lanindex)
 push to main -> GitHub Actions builds arm64 image, pushes `ghcr.io/nathan815/lanindex` -> creates a GitHub deployment -> Woodpecker (`.woodpecker/deploy-lanindex.yaml`, deployment event) -> Komodo `DeployStack` (the step polls the update until it completes and fails if it didn't succeed) -> pi01 pulls and restarts.
 The `lanindex` workflow runs `validate.yml` first (`needs: validate`), so a failing check blocks the image push and the deployment.
