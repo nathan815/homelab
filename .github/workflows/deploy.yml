@@ -35,6 +35,9 @@ jobs:
   validate:
     name: Validate
     uses: ./.github/workflows/validate.yml
+    # Validate what gets deployed: a dispatch's ref, not the branch it ran from.
+    with:
+      ref: ${{ inputs.ref || github.sha }}
 
   plan:
     name: Plan

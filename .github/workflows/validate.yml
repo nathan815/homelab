@@ -4,6 +4,11 @@ name: Validate
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: "Ref to validate (default: the triggering commit)"
+        type: string
+        default: ""
   pull_request:
 
 permissions:
@@ -15,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - name: docker compose config
         run: |
           for f in stacks/*/docker-compose.yml; do

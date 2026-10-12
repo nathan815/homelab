@@ -23,8 +23,8 @@ Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same
 
 ## Deploy flow
 push to main -> `.github/workflows/deploy.yml`:
-1. runs `validate.yml` (`needs`), so a failing check blocks every build and deploy;
-2. finds the stacks whose `stacks/<name>/` or `apps/<name>/` changed, keeping only git-backed stacks in `komodo.toml` (`.github/scripts/deploy_plan.py`);
+1. runs `validate.yml` (`needs`) on the ref being deployed, so a failing check blocks every build and deploy;
+2. finds the stacks whose `stacks/<name>/` or `apps/<name>/` changed, keeping only git-backed stacks in `komodo.toml` (`.github/scripts/deploy_plan.py`). If the previous commit is unknown (new branch, force push) it deploys all of them;
 3. one matrix job per stack (concurrency group per stack): if `apps/<name>/Dockerfile` exists, builds arm64 on `ubuntu-24.04-arm` and pushes `ghcr.io/nathan815/<name>:<sha>` (and `:latest`); then creates a GitHub deployment with task `deploy:<name>`.
 
 Woodpecker (`.woodpecker/deploy.yaml`, deployment events whose task starts with `deploy:`) runs `ci/komodo-deploy.sh`: for stacks with an image it sets the Komodo variable `<NAME>_IMAGE_TAG` (uppercase, `-` -> `_`) to the sha, then calls `DeployStack` and polls the update, failing unless it succeeded.
