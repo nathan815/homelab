@@ -73,7 +73,12 @@
     passno: 0
   tags: [plex, mounts]
 
+- name: Reload systemd so it picks up the new fstab entries
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags: [plex, mounts]
+
 - name: Validate /etc/fstab
-  ansible.builtin.command: findmnt --verify --tab-file /etc/fstab
+  ansible.builtin.command: mount -fav
   changed_when: false
   tags: [plex, mounts]
