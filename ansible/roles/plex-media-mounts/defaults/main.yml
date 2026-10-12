@@ -1,0 +1,35 @@
+---
+# Plex media drives are mounted individually under /mnt and pooled with mergerfs at the path the
+# containers already use, so no compose files need to change.
+mergerfs_version: "2.40.2"
+mergerfs_deb_url: "https://github.com/trapexit/mergerfs/releases/download/{{ mergerfs_version }}/mergerfs_{{ mergerfs_version }}.debian-{{ ansible_distribution_release }}_{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}.deb"
+
+plex_media_pool_path: /media/plexmedia01
+
+plex_media_disks:
+  - { path: /mnt/disk1, uuid: b5e01917-25e7-43c0-ba3d-cf438e07b3ff } # 2TB Toshiba (original plexmedia01)
+  - { path: /mnt/disk2, uuid: c17d1e83-66ba-4965-9f34-e5605ccf0dd4 } # 4TB Seagate
+
+# mspmfs ("most shared path, most free space") keeps a show on the drive that already has its folder,
+# and falls back to the drive with the most free space when that drive is below minfreespace. Where
+# both drives hold the same parent folder it is a tie and the emptier drive wins. Library folders
+# (TV, Movies, ...) need no setup because mergerfs creates missing parents. The download folders do:
+# they already exist only on disk1, so without a twin on disk2 new downloads would stay on disk1.
+# Parents must come before children (each is created and chowned in order).
+plex_media_shared_dirs:
+  - downloads
+  - downloads/tv
+  - downloads/movies
+
+# minfreespace: branches with less free space than this are skipped when creating files (verified:
+# with epmfs the create fails with ENOSPC at this point; with mspmfs it falls back to another branch).
+# moveonenospc: if a write hits ENOSPC, mergerfs moves the file to a branch with room and retries.
+plex_media_pool_opts:
+  - allow_other
+  - use_ino
+  - cache.files=off
+  - dropcacheonclose=true
+  - category.create=mspmfs
+  - moveonenospc=true
+  - minfreespace=20G
+  - nofail

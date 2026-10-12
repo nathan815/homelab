@@ -8,6 +8,24 @@
   - Monitoring: Cockpit, NodeExporter, cAdvisor
   - Plan: Cluster more Optiplexes together
 
+### Plex Media Storage
+Both drives are USB disks on the Proxmox host, passed through to the docker VM (VM 102) by stable
+by-id path (`qm set 102 -scsiN /dev/disk/by-id/usb-...,backup=no`; `scsi2` = 2TB Toshiba,
+`scsi3` = 4TB Seagate). Inside the VM they are pooled with mergerfs; see
+[ansible/roles/plex-media-mounts](../ansible/roles/plex-media-mounts) (its README has the policy trial results).
+
+| Path | What |
+|---|---|
+| `/mnt/disk1` | 2TB Toshiba, ext4, UUID `b5e01917-...` (original plex drive) |
+| `/mnt/disk2` | 4TB Seagate, ext4 (`-m 0`), UUID `c17d1e83-...` |
+| `/media/plexmedia01` | mergerfs pool of both; the only path containers use |
+
+Pool policy is `mspmfs`: new files for an existing show stay on that show's drive, new shows go to the
+drive with the most free space, and once a show's drive drops below `minfreespace` new episodes fall
+back to the other drive (tested; `epmfs` instead fails the write with ENOSPC). `downloads/{tv,movies}`
+are pre-created on every disk so new downloads land on the emptier one. No redundancy: losing a drive loses
+the shows on it.
+
 ### Container Hosts
 - **docker.lan**: Proxmox VM
   - Primary service host (migrated from Pi4)
