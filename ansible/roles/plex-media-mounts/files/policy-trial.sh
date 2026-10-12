@@ -14,14 +14,17 @@ teardown_mounts() {
   for m in "$W/pool" "$W/a" "$W/b"; do mountpoint -q "$m" && umount "$m"; done
   set -e
 }
+any_mounted() {
+  mountpoint -q "$W/pool" || mountpoint -q "$W/a" || mountpoint -q "$W/b"
+}
 cleanup() {
   set +e
   teardown_mounts
   # only delete the scratch dir if every mount is really gone
-  if ! mountpoint -q "$W/pool" && ! mountpoint -q "$W/a" && ! mountpoint -q "$W/b"; then
-    rm -rf "$W"
-  else
+  if any_mounted; then
     echo "WARNING: something is still mounted under $W; left in place, nothing deleted"
+  else
+    rm -rf "$W"
   fi
 }
 trap cleanup EXIT
@@ -50,6 +53,8 @@ where() { # which fake disk holds each given relative path
 run() {
   pol=$1
   echo; echo "================ policy: $pol ================"
+  # never clear the workspace while a test mount is live: deleting would go through it
+  if any_mounted; then echo "ABORT: test mounts still active under $W; refusing to clear it"; exit 1; fi
   rm -rf "$W"; mkdir -p "$W/a" "$W/b" "$W/pool"
   truncate -s 20M "$W/a.img"; truncate -s 50M "$W/b.img"      # a = "old full-ish drive", b = "new drive"
   mkfs.ext4 -q -m 0 -F "$W/a.img"; mkfs.ext4 -q -m 0 -F "$W/b.img"
