@@ -24,10 +24,12 @@ plex_media_shared_dirs:
 # minfreespace: branches with less free space than this are skipped when creating files (verified:
 # with epmfs the create fails with ENOSPC at this point; with mspmfs it falls back to another branch).
 # moveonenospc: if a write hits ENOSPC, mergerfs moves the file to a branch with room and retries.
+# cache.files=partial, not off: qBittorrent (libtorrent) mmaps its files, and cache.files=off breaks
+# mmap ("file_mmap ... No such device", free space shows Unknown).
 plex_media_pool_opts:
   - allow_other
   - use_ino
-  - cache.files=off
+  - cache.files=partial
   - dropcacheonclose=true
   - category.create=mspmfs
   - moveonenospc=true
