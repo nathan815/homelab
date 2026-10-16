@@ -60,12 +60,14 @@
   loop: "{{ plex_media_disks | product(plex_media_shared_dirs) | list }}"
   tags: [plex, mounts]
 
-- name: Mount the mergerfs pool at {{ plex_media_pool_path }}
+# state: present only writes fstab. state: mounted would mount the pool again on every run, because
+# the kernel reports its source as "1:2", not the fstab branch list, so it never looks mounted.
+- name: Add the mergerfs pool to fstab
   ansible.posix.mount:
     src: "{{ plex_media_disks | map(attribute='path') | join(':') }}"
     path: "{{ plex_media_pool_path }}"
     fstype: fuse.mergerfs
-    state: mounted
+    state: present
     opts: >-
       {{ (plex_media_pool_opts
           + (plex_media_disks | map(attribute='path') | map('regex_replace', '^(.*)$', 'x-systemd.requires-mounts-for=\1') | list)) | join(',') }}
@@ -76,6 +78,13 @@
 - name: Reload systemd so it picks up the new fstab entries
   ansible.builtin.systemd:
     daemon_reload: true
+  tags: [plex, mounts]
+
+# Option changes in fstab apply to a running pool only after a remount (or a live
+# user.mergerfs.* xattr change); this task never remounts a pool that is already mounted.
+- name: Mount the mergerfs pool if it is not mounted yet
+  ansible.builtin.command: mount {{ plex_media_pool_path }}
+  when: plex_media_pool_current_fstype == ''
   tags: [plex, mounts]
 
 - name: Validate /etc/fstab
