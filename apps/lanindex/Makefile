@@ -11,7 +11,8 @@ docker-build:
 docker-run:
 	docker run --rm -p 8080:80 -v $(PWD)/config.json:/app/config.json lanindex
 
-# Manual fallback: CI normally does this (.github/workflows/lanindex.yml, then Woodpecker calls Komodo). Push, then redeploy the stack in Komodo.
+# Manual fallback: CI normally does this (.github/workflows/deploy.yml, then Woodpecker calls Komodo).
+# Pushes :latest; the stack runs the sha in Komodo's LANINDEX_IMAGE_TAG variable, so set it to latest before redeploying.
 deploy: docker-deployment-build
 	@echo "Pushed. Redeploy the lanindex stack in Komodo."
 

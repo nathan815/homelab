@@ -1,11 +1,15 @@
-# PR + main validation on GitHub-hosted runners (no LAN access, no secrets).
+# PR validation on GitHub-hosted runners (no LAN access, no secrets).
+# Pushes to main run it via deploy.yml, which gates deploys on it.
 name: Validate
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: "Ref to validate (default: the triggering commit)"
+        type: string
+        default: ""
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -16,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - name: docker compose config
         run: |
           for f in stacks/*/docker-compose.yml; do
@@ -33,7 +39,10 @@ jobs:
           docker run --rm -v "$PWD/stacks/monitoring/blackbox/config:/config:ro" \
             prom/blackbox-exporter --config.file=/config/blackbox.yml --config.check
       - name: shellcheck
-        run: shellcheck --severity=error stacks/*.sh
+        run: shellcheck --severity=error stacks/*.sh ci/*.sh
+      - name: deployable stacks
+        run: |
+          echo "Deployable: $(python3 .github/scripts/deploy_plan.py list)"
       - name: yamllint
         run: pipx run yamllint -d relaxed ansible .woodpecker .github
       - name: ansible-lint (advisory, existing roles have violations)

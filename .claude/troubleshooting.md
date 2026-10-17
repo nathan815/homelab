@@ -20,7 +20,7 @@
    - Navigate to `http://service.$domain` in browser
    - Check if it returns a valid response
 
-2. If the service is up, update `lanindex/config.json`:
+2. If the service is up, update `apps/lanindex/config.json`:
    - Look for `"check_url"` — it may be hitting the wrong endpoint
    - Example: Plex uses `/identity` not root `/`
 

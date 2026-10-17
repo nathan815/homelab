@@ -2,6 +2,8 @@
 
 ## Adding a New Service
 
+> Komodo-managed (git-backed) stacks deploy from CI on push to main: see `komodo/README.md` ("Adding a stack"). The steps below are the older Ansible/manual path.
+
 ### 1. Create the Stack Directory
 ```bash
 mkdir stacks/myservice
@@ -35,7 +37,7 @@ server {
 ```
 
 ### 5. Register in lanindex (optional but recommended)
-Edit `lanindex/config.json`:
+Edit `apps/lanindex/config.json`:
 ```json
 {
   "name": "My Service",
