@@ -21,7 +21,7 @@ https://trello.com/b/16M8tM5F/smart-home-homelab
 ## Key Directories
 - `ansible/` - Playbooks and roles for all provisioning
 - `stacks/` - docker-compose stacks (one per service)
-- `lanindex/` - Custom Flask app for LAN home page + service health checks
+- `apps/lanindex/` - Custom Flask app for LAN home page + service health checks
 - `ansible/group_vars/` - Host configuration (inventory variables)
 - `routeros/` - RouterOS configuration for Mikrotik router
 
