@@ -33,6 +33,7 @@
     { "name": "Bazarr (Subtitles)", "url": "http://bazarr.$domain" },
     { "name": "Prowlarr", "url": "http://prowlarr.$domain" },
     { "name": "QBT", "url": "http://qbt.$domain" },
+    { "name": "qui (QBT UI)", "url": "http://qui.$domain" },
     { "name": "Router", "url": "http://router.lan" },
     { "name": "WireGuard", "url": "http://wireguard.$domain" },
     { "name": "Zigbee2MQTT", "url": "http://192.168.0.29:8888" },
