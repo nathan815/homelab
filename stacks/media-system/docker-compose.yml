@@ -179,3 +179,18 @@ services:
         interval: 20s
         timeout: 10s
         start_period: 30s
+
+  qui:
+    container_name: qui
+    image: ghcr.io/autobrr/qui:v1.32.0@sha256:13a09cb0f27004dd19510f6af37aac140164ba0f9a13333b8698e41bd2d1df4c
+    restart: always
+    user: "1000:1000"
+    depends_on:
+      - qbt
+    environment:
+      - QUI__HOST=0.0.0.0
+      - TZ=America/Detroit
+    volumes:
+      - "/opt/appdata/qui:/config" # outside the stack folder so Komodo can own /opt/stacks
+    ports:
+      - "${QUI_PORT:-8090}:7476"
