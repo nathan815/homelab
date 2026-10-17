@@ -22,11 +22,10 @@ Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same
 4. Redeploy from Komodo, confirm, then delete the `.ansible-bak` folder.
 
 ### monitoring (one-off, #7)
-Was the `monitoring-server` Ansible role (rendered into `~/monitoring`, compose project `monitoring`). Data lives outside the stack folder: Prometheus in `/mnt/data1/monitoring-data/prometheus`, Grafana in the named volume `monitoring_grafana_data` (pinned in the compose file). Uptime Kuma used to live in `/opt/stacks/monitoring/uptimekuma_data`, which is now Komodo's clone target, so it moves. Merging the PR that adds `stacks/monitoring/` triggers `deploy:monitoring`, which will fail until the steps below are done (Komodo still has the old `files_on_host` config, or the old folder is in the way); a failed deploy leaves the running containers alone. On pi01:
-1. Before merging: back up (`sudo tar czf ~/monitoring-backup.tgz /opt/stacks/monitoring /mnt/data1/monitoring-data` and `docker run --rm -v monitoring_grafana_data:/v -v ~/:/b alpine tar czf /b/grafana_data.tgz -C /v .`), and in Komodo, Settings -> Variables, add secret variables `GRAFANA_ADMIN_PASSWORD` (only used if Grafana's DB is ever recreated) and `HOME_ASSISTANT_TOKEN` (same value as `secrets.home_assistant_token` in Ansible).
-2. Merge, then (monitoring is down from here until step 4) `cd ~/monitoring && docker compose down`, `sudo mkdir -p /mnt/data1/monitoring-data && sudo mv /opt/stacks/monitoring/uptimekuma_data /mnt/data1/monitoring-data/uptime-kuma` and `sudo mv /opt/stacks/monitoring /opt/stacks/monitoring.ansible-bak`.
-3. Run the `homelab` sync (check Pending: `monitoring` should switch to git).
-4. Deploy: Actions -> Deploy -> Run workflow, stack `monitoring`, ref `main` (or Deploy in Komodo). Check Grafana dashboards, Prometheus targets (incl. `homeassistant_sensors`) and Uptime Kuma monitors, then delete `~/monitoring` and the `.ansible-bak` folder.
+Was the `monitoring-server` Ansible role (`~/monitoring`, compose project `monitoring`). Only Uptime Kuma's data moves: it lived in `/opt/stacks/monitoring/uptimekuma_data`, which Komodo now clones into, and goes to `/mnt/data1/monitoring-data/uptime-kuma`. Prometheus (`/mnt/data1/monitoring-data/prometheus`) and Grafana (volume `monitoring_grafana_data`) stay put. Merging the PR triggers `deploy:monitoring`, which fails until the cutover is done; a failed deploy leaves the running containers alone.
+1. In Komodo, Settings -> Variables: add secret variables `GRAFANA_ADMIN_PASSWORD` (only used if Grafana's DB is ever recreated) and `HOME_ASSISTANT_TOKEN` (same value as `secrets.home_assistant_token` in Ansible).
+2. Merge, then on pi01 run `sudo sh stacks/monitoring/cutover.sh` (from a checkout, or copy the file over). It checks nothing will be overwritten, backs up the Uptime Kuma data, stops the old containers, moves the data and moves `/opt/stacks/monitoring` to `.ansible-bak`. Monitoring is down until step 3.
+3. Run the `homelab` sync, then deploy `monitoring`. The script prints these steps, what to check and how to roll back.
 
 ## Deploy flow
 push to main -> `.github/workflows/deploy.yml`:
