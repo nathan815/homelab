@@ -50,6 +50,7 @@ services:
   wizarr:
     image: ghcr.io/wizarrrr/wizarr:latest
     container_name: plex-wizarr
+    restart: unless-stopped
     volumes:
       - "./data/wizarr:/data/database"
     ports:
