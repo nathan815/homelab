@@ -7,9 +7,9 @@
 1. **Git access**: none needed, the repo is public. If it ever goes private, add a GitHub account under Settings -> Providers and set `git_account` on the stacks and sync.
 2. **Periphery** runs on each host as `komodo-periphery` in the `container-mgmt` stack (deployed by `ansible/playbooks/base.yml`, image pinned to `ghcr.io/mbecker20/periphery:1.16`, port 8120, auth via `KOMODO_PASSKEY`). Confirm the `pi01` server shows as connected in Komodo before syncing. Note Periphery's `PERIPHERY_STACK_DIR` is `/opt/stacks`, the same directory Ansible's `deploy-stack` role and Dockge use: check where Komodo writes a git-backed stack before migrating one, so the two don't fight over `/opt/stacks/<name>`.
 3. **The `homelab` sync already exists** in Komodo (repo `nathan815/homelab`, path `komodo/komodo.toml`) and is deliberately not in `komodo.toml`, because a sync can't update its own resource while running ("resource busy"). Its config is recorded in `komodo/bootstrap.toml` (not read by the sync) so a fresh Komodo can recreate it. To test from a branch, set the sync's branch in the UI; set it back to `main` after merging. `komodo.toml` was seeded from the live config, so Refresh should show only new/changed resources. **Check the Pending tab before Execute**, especially for deletions.
-4. **API key for CI**: Settings -> API keys -> create one, **on an admin user** (CI sets Komodo variables, and `UpdateVariableValue` is admin only). Add it to Woodpecker as repo secrets `komodo_api_key` and `komodo_api_secret`, limited to the `deployment` event. Keep the repo non-Trusted in Woodpecker.
+4. **API key for CI**: Settings -> API keys -> create one (the dialog shows a key `K-...` and a secret `S-...`; the secret is shown only once), **on an admin user** (CI sets Komodo variables, and `UpdateVariableValue` is admin only). Add it to Woodpecker as repo secrets `komodo_api_key` and `komodo_api_secret`, limited to the `deployment` event. Keep the repo non-Trusted in Woodpecker.
    Leave the `homelab` sync's "include variables" off: CI owns the `<STACK>_IMAGE_TAG` variables.
-5. **Woodpecker** (push events only): in the repo's settings turn OFF "Allow pull requests" (public repo, self-hosted agent). GitHub must be able to reach Woodpecker's `/api/hook` for the `deployment` event, so a public route to just that path is required (not set up yet).
+5. **Woodpecker** (push events only): in the repo's settings turn OFF "Allow pull requests" (public repo, self-hosted agent). GitHub reaches Woodpecker's `/api/hook` for the `deployment` event via `https://ci-hooks.nathancj.com` (cloudflared tunnel -> `nginx-public`, which forwards only POST `/api/hook`).
 6. **ghcr.io packages**: after the first deploy of a stack with an `apps/<name>/` image, set the `<name>` package visibility to public so the host can pull without credentials.
 7. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
 
@@ -20,6 +20,12 @@ Komodo clones git-backed stacks into `/opt/stacks/<stack>` on the host, the same
 2. Remove the stack from `ansible/playbooks/*.yml` so Ansible stops writing to it.
 3. On the host, move the Ansible-copied folder aside: `sudo mv /opt/stacks/<stack> /opt/stacks/<stack>.ansible-bak` (the running containers are unaffected).
 4. Redeploy from Komodo, confirm, then delete the `.ansible-bak` folder.
+
+### monitoring (one-off, #7)
+Was the `monitoring-server` Ansible role (`~/monitoring`, compose project `monitoring`). Only Uptime Kuma's data moves: it lived in `/opt/stacks/monitoring/uptimekuma_data`, which Komodo now clones into, and goes to `/mnt/data1/monitoring-data/uptime-kuma`. Prometheus (`/mnt/data1/monitoring-data/prometheus`) and Grafana (volume `monitoring_grafana_data`) stay put. Merging the PR triggers `deploy:monitoring`, which fails until the cutover is done; a failed deploy leaves the running containers alone.
+1. In Komodo, Settings -> Variables: add secret variables `GRAFANA_ADMIN_PASSWORD` (only used if Grafana's DB is ever recreated) and `HOME_ASSISTANT_TOKEN` (same value as `secrets.home_assistant_token` in Ansible).
+2. Merge, then on pi01 run `sudo sh stacks/monitoring/cutover.sh` (from a checkout, or copy the file over). It checks nothing will be overwritten, backs up the Uptime Kuma data, stops the old containers, moves the data and moves `/opt/stacks/monitoring` to `.ansible-bak`. Monitoring is down until step 3.
+3. Run the `homelab` sync, then deploy `monitoring`. The script prints these steps, what to check and how to roll back.
 
 ## Deploy flow
 push to main -> `.github/workflows/deploy.yml`:

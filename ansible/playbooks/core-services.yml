@@ -17,12 +17,6 @@
         stack_name: dashkiosk
       tags: dashkiosk
 
-    - role: monitoring-server
-      tags: monitoring
-      vars:
-        monitoring_home_assistant_token: "{{ secrets.home_assistant_token }}"
-        monitoring_hostname: pi01.lan
-
     - role: deploy-stack
       vars:
         stack_name: wireguard-vpn
