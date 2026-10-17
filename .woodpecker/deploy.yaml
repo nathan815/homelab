@@ -15,7 +15,8 @@ steps:
         from_secret: komodo_api_key
       KOMODO_API_SECRET:
         from_secret: komodo_api_secret
-    # The logic lives in a script: Woodpecker pre-processes ${...} in commands.
+    # The logic lives in a script: Woodpecker substitutes dollar-brace variables
+    # everywhere in this file (comments too), which would mangle shell code.
     commands:
       - apk add --no-cache curl jq
       - sh ci/komodo-deploy.sh
