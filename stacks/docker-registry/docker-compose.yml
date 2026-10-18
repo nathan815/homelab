@@ -19,7 +19,7 @@ services:
     container_name: registry-ui
 
   registry-server:
-    image: registry:2.8.2@sha256:bcece5dd3d4b6189e13e7ac71b2ccbc2aae649365f0c589852d687efeba6b290
+    image: registry:3.1.2@sha256:ddf754342cfc8acc51a56d5d0ab6af06826461864460636d8bd5c546dab2a7b8
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://ncr.lan]'

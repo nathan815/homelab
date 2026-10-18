@@ -7,7 +7,7 @@ networks:
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:2.0.0-beta-slim.1@sha256:a135a59491db8a6d44567d4da738b8b1e114ff75ea01cee47e07c02128258b6d
+    image: louislam/uptime-kuma:2.1.0-beta-slim.1@sha256:599ebb0964cf699426a905b1f1f4e48d6bec9fb03b652170b824fbce35676766
     volumes:
       # Outside /opt/stacks/monitoring: Komodo owns that folder (git clone)
       - /mnt/data1/monitoring-data/uptime-kuma:/app/data
