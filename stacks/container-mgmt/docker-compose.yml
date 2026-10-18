@@ -3,7 +3,7 @@ services:
 
   # cAdvisor - Container Advisor
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.49.1@sha256:3cde6faf0791ebf7b41d6f8ae7145466fed712ea6f252c935294d2608b1af388
     container_name: cadvisor
     restart: always
     ports:
@@ -20,7 +20,7 @@ services:
 
   # Dockge - Docker Compose Management Web UI
   dockge:
-    image: louislam/dockge:1
+    image: louislam/dockge:1@sha256:335c6368b880ecc203236ed89e6e5232e0d6578e8ef5920e4a502390451502bf
     container_name: dockge
     restart: always
     ports:
@@ -43,7 +43,7 @@ services:
 
   # Komodo Periphery Agent
   komodo-periphery:
-    image: ghcr.io/mbecker20/periphery:1.16
+    image: ghcr.io/mbecker20/periphery:1.16@sha256:087babb8a6090882846750f72c48323007cbf9a548bd930a19a0c09e8220d95c
     container_name: komodo-periphery
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers

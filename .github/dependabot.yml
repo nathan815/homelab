@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: docker-compose
+    directories:
+      - "/stacks/*"
+    schedule:
+      interval: weekly
+    groups:
+      stack-images:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directories:
+      - "/ansible"
+      - "/apps/lanindex"
+    schedule:
+      interval: weekly
+    groups:
+      dockerfile-images:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,6 +1,6 @@
 services:
   nginx-internal:
-    image: nginx
+    image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
     container_name: nginx-internal
     restart: always
     networks:
@@ -18,7 +18,7 @@ services:
       start_period: 30s
 
   nginx-public:
-    image: nginx
+    image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
     container_name: nginx-public
     restart: always
     networks: 

@@ -3,7 +3,7 @@ services:
 
   # Woodpecker CI server - http://woodpecker.lan.nathancj.com
   woodpecker-server:
-    image: woodpeckerci/woodpecker-server:v3
+    image: woodpeckerci/woodpecker-server:v3@sha256:6ca167a3c58b50c5a3c903dd8db92b39cfc30c560a47052cff7dd0235123a9cb
     container_name: woodpecker-server
     restart: unless-stopped
     ports:
@@ -25,7 +25,7 @@ services:
       - woodpecker
 
   woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:v3
+    image: woodpeckerci/woodpecker-agent:v3@sha256:f85f163e09494ace3377a3f3a6043f131fb47e3e627f7438de42417ee06ca56d
     container_name: woodpecker-agent
     restart: unless-stopped
     depends_on:

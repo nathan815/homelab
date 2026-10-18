@@ -1,6 +1,6 @@
 services:
   registry-ui:
-    image: joxit/docker-registry-ui:main
+    image: joxit/docker-registry-ui:main@sha256:dfaef1826416283af811b3082e027034fb97a8369713deb3e24a695234df210d
     restart: always
     ports:
       - "${DOCKER_REGISTRY_PORT}:80"
@@ -19,7 +19,7 @@ services:
     container_name: registry-ui
 
   registry-server:
-    image: registry:2.8.2
+    image: registry:2.8.2@sha256:bcece5dd3d4b6189e13e7ac71b2ccbc2aae649365f0c589852d687efeba6b290
     restart: always
     environment:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[http://ncr.lan]'

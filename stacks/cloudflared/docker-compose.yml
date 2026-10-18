@@ -1,7 +1,7 @@
 services:
   cloudflared:
     container_name: cloudflared
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.1@sha256:a15a3b50b8dabd57ac2090e9484c0247dba9dfa1f0df4d298d4317f9d69eb2d5
     # Remotely-managed tunnel: public hostnames/ingress rules are configured in
     # the Cloudflare Zero Trust dashboard (Networks > Tunnels), not in this repo.
     command: tunnel --no-autoupdate --metrics 127.0.0.1:2000 run
