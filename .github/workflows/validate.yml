@@ -23,7 +23,7 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
       - name: Images are pinned by digest
-        run: .github/scripts/check_pinned_images.sh
+        run: .github/scripts/check_pinned_images.py
       - name: docker compose config
         run: |
           for f in stacks/*/docker-compose.yml; do
