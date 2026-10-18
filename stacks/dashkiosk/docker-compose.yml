@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   dashkiosk:
-    image: ghcr.io/vincentbernat/dashkiosk:latest
+    image: ghcr.io/vincentbernat/dashkiosk:2.7.11@sha256:51c7f1c5b2c228bf1bd81e6f8b17fc33452cebff79098a6f4b868e4ff9c05eb7
     container_name: dashkiosk
     command: ["--configuration", "/dashkiosk-config.json"]
     network_mode: host  # for mDNS Chromecast discovery

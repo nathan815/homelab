@@ -4,7 +4,7 @@ services:
   viewtube:
     restart: unless-stopped
     # Or use mauriceo/viewtube:dev for the development version
-    image: mauriceo/viewtube:dev
+    image: mauriceo/viewtube:dev@sha256:aae4e1850bd16f0e6ad0af9c98bf1e82a758ba77c63ea05334ef907f4b58ac68
     # ViewTube will not start until the database and redis are ready
     depends_on:
       - viewtube-mongodb
@@ -23,7 +23,7 @@ services:
 
   viewtube-mongodb:
     restart: unless-stopped
-    image: mongo:7
+    image: mongo:7@sha256:c53852c00c23ca9f23fc39690350ffa9a80e3642fe8f96879726d8da0abe80a7
     networks:
       - viewtube
     volumes:
@@ -31,7 +31,7 @@ services:
 
   viewtube-redis:
     restart: unless-stopped
-    image: redis:7
+    image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
     networks:
       - viewtube
     volumes:

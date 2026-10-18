@@ -9,7 +9,7 @@ services:
       - WG_DEFAULT_DNS=192.168.0.148
       - WG_ALLOWED_IPS=${WG_LAN_NETWORK}
 
-    image: ghcr.io/wg-easy/wg-easy
+    image: ghcr.io/wg-easy/wg-easy:14@sha256:5f26407fd2ede54df76d63304ef184576a6c1bb73f934a58a11abdd852fab549
     container_name: wg-vpn
     volumes:
       - etc_wireguard:/etc/wireguard
