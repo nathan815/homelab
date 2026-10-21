@@ -1,0 +1,29 @@
+name: lanindex
+
+on:
+  pull_request:
+    paths:
+      - "apps/lanindex/**"
+      - ".github/workflows/lanindex.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/lanindex/**"
+      - ".github/workflows/lanindex.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/lanindex
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: apps/lanindex/.python-version
+      - run: pip install -r requirements.txt pytest
+      - run: python -m pytest -v
