@@ -1,0 +1,9 @@
+model:
+  provider: custom
+  default: mock-model
+  base_url: https://llm.mock.test/v1
+  api_key: PLACEHOLDER_KEY
+approvals:
+  mode: manual
+browser:
+  backend: "off"
