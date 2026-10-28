@@ -59,7 +59,6 @@
   ansible.builtin.file:
     path: "{{ appdata_root }}/{{ stack_name }}"
     state: directory
-    owner: "{{ ansible_ssh_user }}"
   when: stack_uses_appdata
 
 - name: Copy stack files to server
