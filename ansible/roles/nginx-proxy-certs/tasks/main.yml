@@ -1,0 +1,35 @@
+---
+# Host setup for nginx-proxy's certbot service: cert storage and the Cloudflare DNS API token
+# (secrets.cloudflare_dns_api_token, scoped to Zone:DNS:Edit on nathancj.com).
+- name: Require the Cloudflare DNS API token
+  ansible.builtin.assert:
+    that: secrets.cloudflare_dns_api_token | default('') | length > 0
+    fail_msg: "Set secrets.cloudflare_dns_api_token in secrets.yml (see sample.secrets.yml)"
+
+- name: Create nginx-proxy appdata folder
+  ansible.builtin.file:
+    path: "{{ nginx_proxy_appdata }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Create Let's Encrypt storage folder
+  ansible.builtin.file:
+    path: "{{ nginx_proxy_appdata }}/letsencrypt"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  become: true
+
+- name: Write certbot Cloudflare credentials
+  ansible.builtin.copy:
+    content: "dns_cloudflare_api_token = {{ secrets.cloudflare_dns_api_token }}\n"
+    dest: "{{ nginx_proxy_appdata }}/cloudflare.ini"
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true

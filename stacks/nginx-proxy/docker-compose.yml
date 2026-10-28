@@ -3,19 +3,57 @@ services:
     image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
     container_name: nginx-internal
     restart: always
+    # Wraps the stock entrypoint to reload nginx when certbot renews the cert
+    entrypoint: ["/bin/sh", "/nginx-internal-entrypoint.sh"]
+    depends_on:
+      certbot:
+        condition: service_healthy
     networks:
       - internal-proxy-net
     volumes:
       - ./config/nginx_internal.conf:/etc/nginx/conf.d/default.conf
       - ./config/includes:/etc/nginx/conf.d/includes
+      - ./config/nginx-internal-entrypoint.sh:/nginx-internal-entrypoint.sh:ro
       - ./html:/usr/share/nginx/html
+      - /opt/appdata/nginx-proxy/letsencrypt:/etc/letsencrypt:ro
     ports:
       - 80:80
+      - 443:443
     healthcheck:
-      test: curl -s http://localhost:80
+      # Any HTTP response over TLS counts; the upstream behind lan.nathancj.com may be down
+      test: curl -sk -o /dev/null --resolve lan.nathancj.com:443:127.0.0.1 https://lan.nathancj.com/
       interval: 30s
       timeout: 5s
       start_period: 30s
+
+  # Issues and renews the *.lan.nathancj.com cert (Let's Encrypt DNS-01 via Cloudflare).
+  # certonly --keep-until-expiring is idempotent: it issues on first run and renews within 30 days of expiry.
+  # Cert storage and the API token live under /opt/appdata/nginx-proxy (created by Ansible), outside this stack folder.
+  certbot:
+    image: certbot/dns-cloudflare:v5.8.0@sha256:c45edb002b883da1a1235abb205dff474a7a1a459d878e8d5fdc7f9d83073aea
+    container_name: certbot-lan
+    restart: always
+    volumes:
+      - /opt/appdata/nginx-proxy/letsencrypt:/etc/letsencrypt
+      - /opt/appdata/nginx-proxy/cloudflare.ini:/cloudflare.ini:ro
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        while :; do
+          certbot certonly -n --agree-tos --register-unsafely-without-email \
+            --dns-cloudflare --dns-cloudflare-credentials /cloudflare.ini \
+            --dns-cloudflare-propagation-seconds 30 \
+            --keep-until-expiring --cert-name lan.nathancj.com \
+            -d lan.nathancj.com -d '*.lan.nathancj.com' \
+            -d '*.docker.lan.nathancj.com' -d '*.pi01.lan.nathancj.com' \
+            || echo "certbot failed, retrying in 12h"
+          sleep 43200
+        done
+    healthcheck:
+      test: test -f /etc/letsencrypt/live/lan.nathancj.com/fullchain.pem
+      interval: 10s
+      timeout: 5s
 
   nginx-public:
     image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
