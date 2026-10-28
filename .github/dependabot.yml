@@ -8,6 +8,24 @@ updates:
     groups:
       stack-images:
         patterns: ["*"]
+    # Majors that need a planned migration. Remove an entry once that
+    # migration is done so dependabot tracks the new major again.
+    ignore:
+      # Komodo v1 Core; 2.x needs a Postgres/DocumentDB backend. Replaced by Komodo v2 (#6).
+      - dependency-name: "ghcr.io/ferretdb/ferretdb"
+        update-types: ["version-update:semver-major"]
+      # 3.x: new default config path, drops schema1 manifests; verify with registry-ui first.
+      - dependency-name: "registry"
+        update-types: ["version-update:semver-major"]
+      # 5.x: one-way config/fastresume migration, WebAPI pause/resume renamed to stop/start.
+      - dependency-name: "linuxserver/qbittorrent"
+        update-types: ["version-update:semver-major"]
+      # 5.x: device cron expressions must be rewritten to the new format.
+      - dependency-name: "ghcr.io/seriousm4x/upsnap"
+        update-types: ["version-update:semver-major"]
+      # Majors must go one at a time with setFeatureCompatibilityVersion between them.
+      - dependency-name: "mongo"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directories:
