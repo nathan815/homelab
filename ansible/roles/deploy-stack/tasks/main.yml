@@ -8,23 +8,27 @@
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}"
   delegate_to: localhost
+  become: false
   register: check_stack_exists
 
 - name: Fail if local stack folder does not exist
   fail:
     msg: "Stack {{ stacks_local_folder }}/{{ stack_name }} does not exist"
   delegate_to: localhost
+  become: false
   when: not check_stack_exists.stat.exists
 
 - name: Check if stack validation script exists
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
+  become: false
   register: check_validation_exists
 
 - name: Run stack validation script
   ansible.builtin.command: "bash {{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
+  become: false
   register: output
   when: check_validation_exists.stat.exists
 
