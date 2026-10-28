@@ -1,2 +1,3 @@
 stacks_local_folder: "{{ playbook_dir }}/../../stacks"
 stacks_remote_folder: /opt/stacks
+appdata_root: /opt/appdata

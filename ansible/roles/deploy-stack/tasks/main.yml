@@ -8,23 +8,27 @@
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}"
   delegate_to: localhost
+  become: false
   register: check_stack_exists
 
 - name: Fail if local stack folder does not exist
   fail:
     msg: "Stack {{ stacks_local_folder }}/{{ stack_name }} does not exist"
   delegate_to: localhost
+  become: false
   when: not check_stack_exists.stat.exists
 
 - name: Check if stack validation script exists
   stat:
     path: "{{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
+  become: false
   register: check_validation_exists
 
 - name: Run stack validation script
   ansible.builtin.command: "bash {{ stacks_local_folder }}/{{ stack_name }}/validate.sh"
   delegate_to: localhost
+  become: false
   register: output
   when: check_validation_exists.stat.exists
 
@@ -32,6 +36,34 @@
   ansible.builtin.debug:
     var: output
   when: check_validation_exists.stat.exists
+
+# Stacks whose compose file mounts ${APPDATA_DIR} keep runtime data in
+# {{ appdata_root }}/<stack> instead of ./data (issue #9). Refuse to deploy while
+# the old ./data is still in the stack folder: the new compose file would start
+# the containers on empty data dirs. docs/appdata-migration.md moves it.
+- name: Check whether the stack uses the appdata root
+  ansible.builtin.set_fact:
+    stack_uses_appdata: "{{ 'APPDATA_DIR' in lookup('ansible.builtin.file', stacks_local_folder ~ '/' ~ stack_name ~ '/docker-compose.yml', errors='ignore') }}"
+
+- name: Check for runtime data left in the stack folder
+  ansible.builtin.stat:
+    path: "{{ stacks_remote_folder }}/{{ stack_name }}/data"
+  register: check_old_data
+  when: stack_uses_appdata
+
+- name: Fail if ./data has not been moved to the appdata root
+  ansible.builtin.fail:
+    msg: >-
+      {{ stacks_remote_folder }}/{{ stack_name }}/data still exists, but the compose file now
+      mounts {{ appdata_root }}/{{ stack_name }}. Deploying would start the stack on empty data.
+      Move the data first (docs/appdata-migration.md), then rerun.
+  when: stack_uses_appdata and check_old_data.stat.exists
+
+- name: Create stack appdata folder
+  ansible.builtin.file:
+    path: "{{ appdata_root }}/{{ stack_name }}"
+    state: directory
+  when: stack_uses_appdata
 
 - name: Copy stack files to server
   ansible.builtin.copy:

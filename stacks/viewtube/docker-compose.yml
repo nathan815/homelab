@@ -13,8 +13,8 @@ services:
     networks:
       - viewtube
     volumes:
-      # This will map ViewTube's data directory to the local folder ./data/viewtube/
-      - ./data/viewtube:/data
+      # This will map ViewTube's data directory to ${APPDATA_DIR:-/opt/appdata}/viewtube/viewtube/
+      - ${APPDATA_DIR:-/opt/appdata}/viewtube/viewtube:/data
     environment:
       - VIEWTUBE_DATABASE_HOST=viewtube-mongodb
       - VIEWTUBE_REDIS_HOST=viewtube-redis
@@ -27,7 +27,7 @@ services:
     networks:
       - viewtube
     volumes:
-      - ./data/db:/data/db
+      - ${APPDATA_DIR:-/opt/appdata}/viewtube/db:/data/db
 
   viewtube-redis:
     restart: unless-stopped
@@ -35,7 +35,7 @@ services:
     networks:
       - viewtube
     volumes:
-      - ./data/redis:/data
+      - ${APPDATA_DIR:-/opt/appdata}/viewtube/redis:/data
 
 networks:
   viewtube:

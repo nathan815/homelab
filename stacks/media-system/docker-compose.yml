@@ -13,7 +13,7 @@ services:
       - TZ=America/Detroit
 
     volumes:
-      - "./data/plex:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/plex:/config"
       - /media/plexmedia01:/Media:ro
     tmpfs:
       - /transcode:size=1G
@@ -26,7 +26,7 @@ services:
     container_name: plex-tautulli
     restart: always
     volumes:
-      - "./data/tautulli:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/tautulli:/config"
     environment:
       - PUID=1000
       - PGID=1000
@@ -43,7 +43,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     volumes:
-      - "./data/overseerr:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/overseerr:/config"
     ports:
       - "${OVERSEERR_PORT}:5055"
 
@@ -52,7 +52,7 @@ services:
     container_name: plex-wizarr
     restart: unless-stopped
     volumes:
-      - "./data/wizarr:/data/database"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/wizarr:/data/database"
     ports:
       - "${WIZARR_PORT}:5690"
 
@@ -65,7 +65,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     volumes:
-      - "./data/prowlarr:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/prowlarr:/config"
     ports:
       - "${PROWLARR_PORT}:9696"
 
@@ -78,7 +78,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     volumes:
-      - "./data/radarr:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/radarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
       - "${RADARR_PORT}:7878"
@@ -92,7 +92,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     volumes:
-      - "./data/sonarr:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/sonarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
       - "${SONARR_PORT}:8989"
@@ -106,7 +106,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     volumes:
-      - "./data/bazarr:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/bazarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
       - "${BAZARR_PORT}:6767"
@@ -134,7 +134,7 @@ services:
     restart: always
     volumes:
       - "/media:/files"
-      - "./data/filebrowser/filebrowser.db:/database/filebrowser.db"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/filebrowser/filebrowser.db:/database/filebrowser.db"
       - "./filebrowser_config.json:/config/settings.json"
     environment:
       - PUID=1000
@@ -172,7 +172,7 @@ services:
       - PGID=1000
       - TZ=America/New_York
     volumes:
-      - "./data/qbt:/config"
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/qbt:/config"
       - "/media/plexmedia01:/plexmedia01"
       - "/media/plexmedia01:/media01"
     healthcheck:

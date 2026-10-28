@@ -1,24 +1,25 @@
 #!/bin/bash
 # Initialize persistent data directories for services
-# This creates the mount points that docker-compose volumes bind to
-# Prevents permission issues and ensures data survives container restarts
+# Runtime data lives under $APPDATA_DIR/<stack> (default /opt/appdata), outside
+# the stack folders, so the stack folder can be replaced or re-cloned (issue #9).
+# Moving existing ./data into it: docs/appdata-migration.md
 
 set -e
 
-STACKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APPDATA_DIR="${APPDATA_DIR:-/opt/appdata}"
 CREATED=0
 
-echo "Initializing data directories..."
+echo "Initializing data directories in $APPDATA_DIR..."
 
 # Create directories as needed
 declare -a DIRS=(
-    "adguardhome/data/work"
-    "adguardhome/data/config"
-    "dockge/data"
+    "adguardhome/work"
+    "adguardhome/config"
+    "container-mgmt/dockge"
 )
 
 for dir in "${DIRS[@]}"; do
-    full_path="$STACKS_DIR/$dir"
+    full_path="$APPDATA_DIR/$dir"
     if [ ! -d "$full_path" ]; then
         mkdir -p "$full_path"
         echo "✓ Created $dir"
