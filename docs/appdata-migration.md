@@ -44,36 +44,40 @@ findmnt -T /opt/stacks -no SOURCE; findmnt -T /opt/appdata -no SOURCE 2>/dev/nul
 
 ## Generic procedure (one stack, one host)
 
-Run host commands over SSH on the host. Run Ansible from `ansible/` in a checkout of `main` that includes this change.
+`stacks/migrate-appdata.sh` does the host side. Run Ansible from `ansible/` in a checkout of `main` that includes this change.
 
 ```bash
-S=<stack>                       # e.g. upsnap
-cd /opt/stacks/$S
+# 1. Copy the script to the host and dry-run it (checks only: free space, empty target, not already migrated)
+scp stacks/migrate-appdata.sh <host>:/tmp/
+ssh <host> 'sudo bash /tmp/migrate-appdata.sh <stack> --dry-run'
 
-# 1. Back up (stack still running; the step 4 copy is the main rollback copy)
-docker compose ps               # note what's running, for the check in step 6
-cp docker-compose.yml docker-compose.yml.pre-appdata    # old compose, for rollback
+# 2. Migrate. The script copies while the stack runs, stops it, copies the rest, verifies the
+#    copy (rsync dry run + entry count), saves docker-compose.yml.pre-appdata and renames
+#    ./data to ./data.pre-appdata. It leaves the stack STOPPED and prints the exact deploy
+#    command and rollback. Add --checksum to verify file contents too (longer downtime).
+ssh <host> 'sudo bash /tmp/migrate-appdata.sh <stack>'
 
-# 2. Stop
-docker compose down
-
-# 3. Copy data to the new root (trailing slashes matter)
-sudo install -d -o $USER -g $USER /opt/appdata/$S
-sudo rsync -aHAX --numeric-ids /opt/stacks/$S/data/ /opt/appdata/$S/
-sudo rsync -aHAXn --numeric-ids --delete -i /opt/stacks/$S/data/ /opt/appdata/$S/   # must print nothing
-
-# 4. Keep the old dir as the backup (Ansible refuses to deploy while ./data exists)
-sudo mv /opt/stacks/$S/data /opt/stacks/$S/data.pre-appdata
-```
-
-```bash
-# 5. Deploy the new compose file (from your laptop)
+# 3. Deploy the new compose file right away (from your laptop; the script prints this line)
 ./ansible_playbook.sh playbooks/<playbook>.yml --limit <host> --tags <tag>
 ```
 
+If anything fails, the script stops before the rename, so `./data` and the old compose file are untouched. It tells you whether the stack is stopped (restart it with `docker compose up -d` in the stack folder). Empty `/opt/appdata/<stack>` before retrying; the script refuses a non-empty target.
+
+What the script does, if you'd rather do it by hand:
 ```bash
-# 6. Verify (on the host)
-docker compose ps                                   # same services up/healthy as in step 1
+S=<stack>; cd /opt/stacks/$S
+sudo install -d /opt/appdata/$S
+sudo rsync -aHAX --numeric-ids data/ /opt/appdata/$S/            # pre-pass, stack running
+cp docker-compose.yml docker-compose.yml.pre-appdata
+docker compose down
+sudo rsync -aHAX --numeric-ids --delete data/ /opt/appdata/$S/   # final pass (trailing slashes matter)
+sudo rsync -aHAXn --numeric-ids --delete -i data/ /opt/appdata/$S/   # must print nothing
+sudo mv data data.pre-appdata
+```
+
+```bash
+# 4. Verify (on the host)
+docker compose ps                                   # same services up/healthy as before (the script lists what was running)
 docker compose logs --tail 50
 docker inspect --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\n"}}{{end}}' <container>   # sources under /opt/appdata/$S
 # plus the stack-specific check below
@@ -93,22 +97,22 @@ sudo rm -rf /opt/stacks/$S/data.pre-appdata /opt/stacks/$S/docker-compose.yml.pr
 ## Order and per-stack notes (lowest risk first)
 
 ### 1. upsnap (pi01, 22M)
-Playbook `core-services.yml --limit pi01 --tags upsnap`. Data files are root-owned, so `rsync` needs `sudo` (already in the procedure). Verify: `http://upsnap.lan/` lists the devices and login works. `curl -fs http://localhost:9000/api/health`.
+Playbook `core-services.yml --limit pi01 --tags upsnap`. Verify: `http://upsnap.lan/` lists the devices and login works. `curl -fs http://localhost:9000/api/health`.
 
 ### 2. dashkiosk (pi01, 36K)
-Not currently running (no `dashkiosk` container on pi01). Steps 1-2 are no-ops. Note that the Ansible deploy (`core-services.yml --limit pi01 --tags dashkiosk`) **starts** it. If it is meant to stay off, add `--skip-tags docker_up` to copy the files only, or decide whether to retire the stack. Verify (if started): the admin UI shows the saved displays.
+Not currently running (no `dashkiosk` container on pi01), so the script only moves the 36K. Note that the Ansible deploy (`core-services.yml --limit pi01 --tags dashkiosk`) **starts** it. If it is meant to stay off, add `--skip-tags docker_up` to copy the files only, or decide whether to retire the stack. Verify (if started): the admin UI shows the saved displays.
 
 ### 3. container-mgmt / dockge (pi01, docker.lan, octoprint; ~100K each)
-Deployed by `base.yml` to every `docker-hosts` host, so do it per host: `./ansible_playbook.sh playbooks/base.yml --limit <host> --tags dirs,container-mgmt`. Order: octoprint, docker.lan, pi01. `docker compose down` here also stops cAdvisor for a minute (a short metrics gap). With #29 merged, Periphery lives in its own stack and is unaffected; before #29, `down` would also stop the v1 `komodo-periphery` until the deploy brings it back. Verify: Dockge UI on port 5555 loads and logs in (its data holds the user and settings).
+Deployed by `base.yml` to every `docker-hosts` host, so do it per host: `./ansible_playbook.sh playbooks/base.yml --limit <host> --tags dirs,container-mgmt`. Order: octoprint, docker.lan, pi01. The script's `docker compose down` also stops cAdvisor for a minute (a short metrics gap). With #29 merged, Periphery lives in its own stack and is unaffected; before #29, `down` would also stop the v1 `komodo-periphery` until the deploy brings it back. Verify: Dockge UI on port 5555 loads and logs in (its data holds the user and settings).
 
 ### 4. viewtube (no host found)
-Not deployed by Ansible or Komodo, and there is no `/opt/stacks/viewtube` on pi01 or docker.lan. If it runs somewhere, apply the generic steps there by hand and copy the new compose file in place of step 5. **Nothing guards this one.** Its mongo data (`data/db`) must be moved with the stack stopped. If it isn't running anywhere, there is nothing to migrate.
+Not deployed by Ansible or Komodo, and there is no `/opt/stacks/viewtube` on pi01 or docker.lan. If it runs somewhere, run the script there (`STACKS_DIR=<parent dir>` if it isn't under `/opt/stacks`) and copy the new compose file by hand in place of the Ansible deploy. **Nothing guards this one.** Its mongo data (`data/db`) must be moved with the stack stopped. If it isn't running anywhere, there is nothing to migrate.
 
 ### 5. adguardhome (pi01, 1.6G): LAN DNS
 pi01 (and the LAN) resolve through AdGuard (`/etc/resolv.conf` on pi01 is `nameserver 192.168.0.148`, AdGuard itself). While it is down, `pi01.lan` does not resolve and image pulls on pi01 fail. So:
 - Use the IP for SSH and Ansible: `ssh 192.168.0.148`, and `-e ansible_ssh_host=192.168.0.148` on the playbook.
-- Copy in two passes so the outage is short: run the step 3 `rsync` once **while it's running** (bulk), then step 2 `down`, then the same `rsync` again plus `--delete` (fast delta), then check and step 4.
-- Deploy without the `--pull always` up, then start locally (the image is already on the host):
+- The script's pre-pass copies the 1.6G while AdGuard still serves DNS, so the outage covers only the final delta copy and the deploy.
+- Deploy without the `--pull always` up, then start locally (the image is already on the host). The script prints these two lines with the IP:
   ```bash
   ./ansible_playbook.sh playbooks/dns.yml --limit pi01 --tags adguardhome --skip-tags docker_up -e ansible_ssh_host=192.168.0.148
   ssh 192.168.0.148 'cd /opt/stacks/adguardhome && docker compose up -d'
@@ -118,9 +122,9 @@ pi01 (and the LAN) resolve through AdGuard (`/etc/resolv.conf` on pi01 is `names
 - Do this in a quiet window. Rollback is the generic one; DNS is down while you do it.
 
 ### 6. media-system (docker.lan, 4.2G), with Plex last
-One compose project, so the whole stack moves at once. Within it, the risk is Plex (3.1G, hard to rebuild) > Sonarr/Radarr (databases) > the rest. "Plex last" means: do every other stack first, and do Plex's copy last in the step 3 window.
+One compose project, so the whole stack moves at once. Within it, the risk is Plex (3.1G, hard to rebuild) > Sonarr/Radarr (databases) > the rest. "Plex last" means: do every other stack first, and migrate media-system last.
 - **Backups first** (stack running). Sonarr/Radarr/Prowlarr: System -> Backup -> "Backup Now" in each UI, and download the zips. Plex: copy `data/plex/Library/Application Support/Plex Media Server/Plug-in Support/Databases/` (it also holds Plex's own scheduled DB backups) and `Preferences.xml` off the host. Optionally tar the whole of `./data` to a media disk (`/mnt/disk1` has room) if you want a copy that isn't on `/dev/sda1`.
-- Two-pass copy to keep downtime short: first `rsync` while running, then `docker compose down`, then a second `rsync --delete`, then the empty dry-run check. Before the deploy, also check `test -f /opt/appdata/media-system/filebrowser/filebrowser.db`: if it were missing, Docker would create a directory there.
+- The script's pre-pass copies the 4.2G while the stack runs, so downtime is the delta copy plus the deploy. For media-system it also fails unless `filebrowser/filebrowser.db` arrived as a file: if it were missing, Docker would create a directory there.
 - Deploy: `./ansible_playbook.sh playbooks/media-services.yml --limit docker.lan --tags media-system`. (this PR adds the `media-system` tag; without it the tag matched nothing).
 - Verify in this order: qbt + gluetun up (VPN connected), Prowlarr indexers green, Sonarr/Radarr show the series/movies and their download client tests pass, Bazarr, Overseerr/Seerr requests list, Wizarr, Tautulli history, filebrowser login. **Then Plex**: the server is still claimed (not "new server" setup), libraries list with posters, a file plays, and `Preferences.xml` has the same `MachineIdentifier`.
 - `qui` already uses `/opt/appdata/qui` (not `/opt/appdata/media-system/qui`). It is left as is to avoid another move.
