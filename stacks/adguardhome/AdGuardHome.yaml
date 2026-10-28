@@ -31,8 +31,8 @@ dns:
     - 149.112.112.10
     - 2620:fe::10
     - 2620:fe::fe:10
-  # Only tried after upstream_dns fails, so with the internet down a query waits for
-  # upstream_timeout on the upstreams and then again on these.
+  # Only tried after upstream_dns fails (two tries of upstream_timeout each), so they add
+  # ~6s to every query while the internet is down.
   fallback_dns:
     - 1.1.1.1
     - 8.8.8.8
@@ -61,23 +61,23 @@ dns:
     custom_ip: ""
     enabled: false
     use_custom: false
-  # Max requests processed concurrently (AdGuard default 300). 0 means unlimited, which let
-  # hung upstream requests pile up without bound and made DNS slow (issue #1). Kept at the
-  # default; the outage fix is in upstream_timeout and the local-zone rules instead.
-  max_goroutines: 300
+  # Max requests processed concurrently, local names included (issue #1). Once full, the UDP
+  # listener stops reading and every query times out. With the internet down an external
+  # query holds its slot ~10-30s before SERVFAIL (bootstrap has a fixed 10s timeout, stale
+  # upstream connections are retried per address, then fallback_dns), far longer than
+  # upstream_timeout. Tested offline: 300 (default) loses 34% of local queries at 10 qps
+  # and 93% at 50 qps. 2000 keeps them at ~1ms through 50 qps (~120MB RSS). 0 (unlimited)
+  # also works, but memory is then unbounded (~500MB at 200 qps).
+  max_goroutines: 2000
   handle_ddr: true
   ipset: []
   ipset_file: ""
   bootstrap_prefer_ipv6: false
-  # Was 10s. Every query held a request slot for this long per attempt (upstreams, then
-  # fallback_dns) when the internet was down, so ~300 slots filled up and queries for local
-  # names, which need no upstream, queued behind them. Normal upstream answers take <300ms.
+  # Was 10s. Per-attempt timeout; healthy upstreams answer in <300ms. Shortens how long a
+  # dead-upstream query holds a slot (warm connections: ~30s -> ~20s), not to 3s.
   upstream_timeout: 3s
   private_networks: []
-  # Reverse lookups for LAN IPs (192.168.x.x etc.) are answered NXDOMAIN locally instead of
-  # being sent to the OS resolver (Docker's 127.0.0.11 -> host resolv.conf). Nothing on the LAN
-  # serves these PTRs (the router answers NXDOMAIN), so no names are lost.
-  use_private_ptr_resolvers: false
+  use_private_ptr_resolvers: true
   local_ptr_upstreams: []
   use_dns64: false
   dns64_prefixes: []
@@ -140,19 +140,10 @@ filters:
     name: Malicious URL Blocklist (URLHaus)
     id: 1725070957
 whitelist_filters: []
-# Rewrites under filtering.rewrites only answer A/AAAA. Other query types for local names,
-# notably HTTPS/SVCB, which browsers and Apple devices send with every A lookup, went to
-# the internet upstreams and hung for upstream_timeout when it was down (issue #1).
-# These rules answer them locally with an empty NOERROR; A/AAAA are excluded, so they never
-# shadow the rewrites.
-#  - .lan is not a real TLD: answer every non-A/AAAA type locally.
-#  - lan.nathancj.com is a public zone (e.g. ACME TXT records), so only HTTPS/SVCB.
 user_rules:
   - '@@||ad.doubleclick.net^'
   - '@@||logz.io^'
   - '@@||hits.sh^'
-  - '||lan^$dnstype=~A|~AAAA,dnsrewrite=NOERROR;;'
-  - '||lan.nathancj.com^$dnstype=HTTPS|SVCB,dnsrewrite=NOERROR;;'
 dhcp:
   enabled: false
   interface_name: ""
