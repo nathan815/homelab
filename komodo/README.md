@@ -75,12 +75,12 @@ Check: `docker compose ps` (postgres, ferretdb, core all up), `docker compose lo
 
 **4. Periphery, one host at a time** (pi01 first, then docker.lan). The new container has the same name as the v1 agent, so remove the v1 agent first. Only the agent stops; the containers it manages keep running.
 ```bash
-ssh pi01.lan docker rm -f komodo-periphery          # v1 agent (orphan of container-mgmt)
+ssh pi01.lan 'docker stop komodo-periphery && docker rm komodo-periphery'   # v1 agent (orphan of container-mgmt)
 read -rs KOMODO_OK                                  # paste O-... (keeps it out of shell history)
 ./ansible_playbook.sh playbooks/base.yml --limit pi01 --tags container-mgmt,komodo-periphery \
   -e komodo_onboarding_key="$KOMODO_OK"
 ```
-Check: `docker logs komodo-periphery` shows it connected, and UI -> Servers shows `pi01` OK. Repeat with `--limit docker.lan`; that host joins as `docker-main` via `komodo_server_name` in the inventory. On **octoprint** (it ran the v1 agent but is not a Komodo server) just run `ssh octoprint.lan docker rm -f komodo-periphery` and then `base.yml --limit octoprint --tags container-mgmt`. After all hosts are connected, disable or delete the onboarding key in the UI, and remove the `KOMODO_ONBOARDING_KEY=` line from `/opt/stacks/komodo-periphery/.env` on each host.
+Check: `docker logs komodo-periphery` shows it connected, and UI -> Servers shows `pi01` OK. Repeat with `--limit docker.lan`; that host joins as `docker-main` via `komodo_server_name` in the inventory. On **octoprint** (it ran the v1 agent but is not a Komodo server) just stop and remove `komodo-periphery` the same way, then run `base.yml --limit octoprint --tags container-mgmt`. After all hosts are connected, disable or delete the onboarding key in the UI, and remove the `KOMODO_ONBOARDING_KEY=` line from `/opt/stacks/komodo-periphery/.env` on each host.
 *Rollback (per host): `cd /opt/stacks/komodo-periphery && docker compose down`. Then run `base.yml --limit <host> --tags container-mgmt` from a checkout of the commit before this PR, which brings back the v1 agent; its `KOMODO_PASSKEY` is still in that host's container-mgmt `.env`. If Core was also rolled back (step 2), v1 is then fully restored.*
 
 **5. Resource sync, once by hand.** UI -> Syncs -> New, named `homelab`, with the values from `komodo/bootstrap.toml` (repo `nathan815/homelab`, branch `main`, resource path `komodo/komodo.toml`, delete off, include variables off). Refresh, then check **Pending** before Execute. Expect updates to the two existing servers and creates for 7 stacks and the `Backup Core Database` procedure. There should be no deletes. Execute. Check: the `files_on_host` stacks (`adguardhome`, `media-system`, `nginx-proxy`, both `container-mgmt:*`) show their running containers. That proves Periphery reads `/opt/stacks/<name>`. Don't deploy anything yet.
