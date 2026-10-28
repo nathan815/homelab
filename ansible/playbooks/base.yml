@@ -32,6 +32,17 @@
 
 - hosts: docker-hosts
   become: true
+  pre_tasks:
+    # Runtime data root: deploy-stack creates /opt/appdata/<stack> under it (issue #9)
+    - name: Create /opt/appdata
+      ansible.builtin.file:
+        path: /opt/appdata
+        state: directory
+        owner: "{{ ansible_ssh_user }}"
+        group: "{{ ansible_ssh_user }}"
+        mode: "0755"
+      tags: dirs
+
   roles:
     - role: geerlingguy.pip
       tags: [pip]
