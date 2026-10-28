@@ -76,3 +76,47 @@
       vars:
         stack_name: container-mgmt
       tags: container-mgmt
+
+# Komodo v2 Periphery (outbound to Core on pi01). Pass the one-time onboarding
+# key on the first run per host: -e komodo_onboarding_key=O-... (komodo/README.md).
+- hosts: komodo-servers
+  become: true
+  pre_tasks:
+    - name: Create Komodo dirs (Periphery root; /opt/appdata for runtime data)
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_ssh_user }}"
+        group: "{{ ansible_ssh_user }}"
+        mode: "0755"
+      loop:
+        - /opt/komodo
+        - /opt/appdata
+        - /opt/stacks/komodo-periphery
+      tags: komodo-periphery
+
+    - name: Set Komodo server name in komodo-periphery .env
+      ansible.builtin.lineinfile:
+        path: /opt/stacks/komodo-periphery/.env
+        regexp: "^KOMODO_SERVER_NAME="
+        line: "KOMODO_SERVER_NAME={{ komodo_server_name }}"
+        create: true
+        mode: "0600"
+        owner: "{{ ansible_ssh_user }}"
+      tags: komodo-periphery
+
+    - name: Set Komodo onboarding key in komodo-periphery .env
+      ansible.builtin.lineinfile:
+        path: /opt/stacks/komodo-periphery/.env
+        regexp: "^KOMODO_ONBOARDING_KEY="
+        line: "KOMODO_ONBOARDING_KEY={{ komodo_onboarding_key }}"
+        mode: "0600"
+      no_log: true
+      when: komodo_onboarding_key is defined
+      tags: komodo-periphery
+
+  roles:
+    - role: deploy-stack
+      vars:
+        stack_name: komodo-periphery
+      tags: komodo-periphery

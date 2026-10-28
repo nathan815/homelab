@@ -1,0 +1,47 @@
+# Komodo v2 Periphery agent, one per Komodo server (pi01, docker.lan).
+# Based on compose/periphery.compose.yaml from moghtech/komodo v2.3.4.
+#
+# Deployed by Ansible (ansible/playbooks/base.yml, tag komodo-periphery) on
+# hosts that set komodo_server_name in the inventory, never by Komodo: a
+# Komodo redeploy of this stack would restart the agent running it.
+#
+# Outbound mode: the agent dials Core (no inbound port). It authenticates with
+# its own key pair (in the keys volume) and trusts Core's public key on first
+# connect. KOMODO_ONBOARDING_KEY is only needed for that first connect.
+#
+# Keep in step with komodo-core in stacks/komodo.
+
+services:
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:2.3.4@sha256:fb4b52961fcce7a31e3776930e422967b6640f653de876f59f26dea243e29beb
+    container_name: komodo-periphery
+    labels:
+      komodo.skip: # Prevent Komodo from stopping with StopAllContainers
+    init: true
+    restart: unless-stopped
+    logging:
+      driver: local
+    environment:
+      # Full list: https://github.com/moghtech/komodo/blob/v2.3.4/config/periphery.config.toml
+      PERIPHERY_CORE_ADDRESS: ws://pi01.lan:9120
+      # Must match the [[server]] name in komodo/komodo.toml.
+      PERIPHERY_CONNECT_AS: ${KOMODO_SERVER_NAME}
+      PERIPHERY_ONBOARDING_KEY: ${KOMODO_ONBOARDING_KEY:-}
+      PERIPHERY_CORE_PUBLIC_KEYS: file:/config/keys/core.pub
+      # Komodo's own tree: git-backed stacks are cloned to
+      # /opt/komodo/stacks/<stack>. Ansible and Dockge own /opt/stacks.
+      PERIPHERY_ROOT_DIRECTORY: /opt/komodo
+      PERIPHERY_INCLUDE_DISK_MOUNTS: /etc/hostname
+    volumes:
+      - keys:/config/keys
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Allow Periphery to see processes outside of container
+      - /proc:/proc
+      # Both trees are mounted at the same path inside and out, so the paths
+      # Periphery hands to docker compose resolve on the host.
+      - /opt/komodo:/opt/komodo
+      # files_on_host stacks (komodo.toml run_directory = "/opt/stacks/<name>")
+      - /opt/stacks:/opt/stacks
+
+volumes:
+  keys:

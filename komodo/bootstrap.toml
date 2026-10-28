@@ -12,4 +12,6 @@ name = "homelab"
 repo = "nathan815/homelab"
 branch = "main"
 webhook_enabled = false
+# Never delete resources missing from komodo.toml (the v2 default, made explicit).
+delete = false
 resource_path = ["komodo/komodo.toml"]
