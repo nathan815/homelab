@@ -14,7 +14,7 @@
 # api/{read,write,execute}): POST /<read|write|execute> with
 # {"type": ..., "params": ...} and X-Api-Key/X-Api-Secret headers;
 # DeployStack {stack} returns an Update ({"_id": {"$oid"}, status, success,
-# logs[].stage/stdout/stderr}); GetUpdate {id}; GetVariable {name};
+# logs[].stage/stdout/stderr}); GetUpdate {id}; ListVariables -> [{name, ...}];
 # CreateVariable / UpdateVariableValue {name, value}.
 set -eu
 
@@ -26,19 +26,34 @@ case $stack in
     ;;
 esac
 
+resp=$(mktemp)
+trap 'rm -f "$resp"' EXIT
+
+# call <read|write|execute> <json>: print the response body, or fail with the
+# request type, HTTP status and Komodo's {"error", "trace"} message.
 call() {
-  curl -fsS -X POST "$KOMODO_URL/$1" \
+  code=$(curl -sS -o "$resp" -w '%{http_code}' -X POST "$KOMODO_URL/$1" \
     -H "Content-Type: application/json" \
     -H "X-Api-Key: $KOMODO_API_KEY" \
     -H "X-Api-Secret: $KOMODO_API_SECRET" \
-    -d "$2"
+    -d "$2") || { echo "Komodo $1 request failed (no response from $KOMODO_URL)" >&2; exit 1; }
+  case $code in
+    2??) cat "$resp" ;;
+    *)
+      echo "Komodo $1 $(echo "$2" | jq -r .type) failed: HTTP $code" >&2
+      jq -r '.error, (.trace[]? | "  " + .)' "$resp" >&2 2> /dev/null || cat "$resp" >&2
+      exit 1
+      ;;
+  esac
 }
 
 if [ -f "apps/$stack/Dockerfile" ]; then
   var=$(echo "${stack}_IMAGE_TAG" | tr 'a-z-' 'A-Z_')
   body=$(jq -nc --arg name "$var" --arg value "$CI_COMMIT_SHA" '{name: $name, value: $value}')
-  # UpdateVariableValue is admin only, so the API key must belong to an admin.
-  if call read "{\"type\":\"GetVariable\",\"params\":{\"name\":\"$var\"}}" > /dev/null 2>&1; then
+  # Creating and updating variables is admin only, so the API key must belong
+  # to an admin user (a non-admin gets HTTP 403 "Only Admins can ...").
+  vars=$(call read '{"type":"ListVariables","params":{}}')
+  if echo "$vars" | jq -e --arg name "$var" 'any(.[]; .name == $name)' > /dev/null; then
     call write "{\"type\":\"UpdateVariableValue\",\"params\":$body}" > /dev/null
   else
     call write "{\"type\":\"CreateVariable\",\"params\":$body}" > /dev/null
