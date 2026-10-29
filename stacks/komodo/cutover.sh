@@ -21,7 +21,9 @@ die() { echo "error: $*" >&2; exit 1; }
 [ "$(id -u)" = 0 ] || die "run with sudo"
 [ -d "$STACK_DIR" ] || die "$STACK_DIR not found"
 
-is_v1() { grep -q 'mbecker20/komodo:1\.' "$STACK_DIR/docker-compose.yml"; }
+# v1 images are ghcr.io/mbecker20/komodo (tagged :1.x, :latest or via
+# ${COMPOSE_KOMODO_IMAGE_TAG}); v2 is ghcr.io/moghtech/komodo-core.
+is_v1() { grep -q 'image: *ghcr.io/mbecker20/komodo:' "$STACK_DIR/docker-compose.yml"; }
 
 # Value of KEY from the v1 .env, if set.
 v1_env() { sed -n "s/^$1=//p" "$STACK_DIR/.env" 2> /dev/null | tail -1; }

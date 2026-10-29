@@ -89,7 +89,7 @@ Check: `docker logs komodo-periphery` shows it connected, and UI -> Servers show
 - `monitoring`: same, stack `monitoring`. Check Grafana and Uptime Kuma come back with their data (`/mnt/data1/monitoring-data`, untouched).
 *Rollback: `cd /opt/stacks/<name> && docker compose up -d`. The v1 clone is still there and has the `.env` v1 wrote. Then investigate.*
 
-**8. Clean up (after about a week stable).** Remove the stale v1 clones (`/opt/stacks/lanindex`, `/opt/stacks/monitoring`, or their `.ansible-bak` copies). Run `ls -la` first: they should hold only git files and `.env`. Remove `/opt/stacks/komodo/komodo.env`. Remove the v1 volumes `docker volume rm komodo_sqlite-data komodo_repo-cache` on pi01, and `container-mgmt_komodo-ssl-certs` on every host. Keep `/opt/appdata/komodo/v1-backup` for a while longer, then delete it.
+**8. Clean up (after about a week stable).** Remove the stale v1 clones (`/opt/stacks/lanindex`, `/opt/stacks/monitoring`, or their `.ansible-bak` copies). Run `ls -la` first: they should hold only git files and `.env`. Remove `/opt/stacks/komodo/komodo.env`. Remove the v1 volumes `docker volume rm komodo_sqlite-data komodo_repo-cache` on pi01 (plus `komodo_mongo-config` and `komodo_mongo-data`, unused since Dec 2024), and `container-mgmt_komodo-ssl-certs` on every host. Keep `/opt/appdata/komodo/v1-backup` for a while longer, then delete it.
 *Rollback: none needed. After this step v1 can only be restored from the step 1 tarball (`tar xzf` into a fresh `komodo_sqlite-data` volume).*
 
 Afterwards: Dockge can be retired (#6 note) once nothing needs its UI. Remove it from `stacks/container-mgmt`.
