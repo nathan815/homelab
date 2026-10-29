@@ -5,6 +5,8 @@
 # ghcr.io/<owner>/<name>:<sha> and create a GitHub deployment with task
 # deploy:<name>. Woodpecker (.woodpecker/deploy.yaml) picks the deployment up
 # and runs ci/komodo-deploy.sh, which pins the stack to <sha> and deploys it.
+# The job then waits for Woodpecker's status on that deployment and fails if
+# the deploy did.
 #
 # workflow_dispatch: redeploy one stack at any ref. Also the rollback: dispatch
 # an older sha. Komodo always reads compose files from main, so a branch
@@ -120,6 +122,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.stack }}
           cache-to: type=gha,mode=max,scope=${{ matrix.stack }}
       - name: Create GitHub deployment (triggers Woodpecker)
+        id: deployment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -130,4 +133,30 @@ jobs:
             -f ref="$SHA" -f environment=production \
             -f task="deploy:${{ matrix.stack }}" -F auto_merge=false \
             -f description="${{ github.event_name }} by ${{ github.actor }}" \
-            -F 'required_contexts[]'
+            -F 'required_contexts[]' --jq '"id=\(.id)"' >> "$GITHUB_OUTPUT"
+      - name: Wait for Woodpecker's deploy result
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STATUSES: repos/${{ github.repository }}/deployments/${{ steps.deployment.outputs.id }}/statuses
+        run: |
+          # Woodpecker reports back on the deployment (pending -> success,
+          # failure or error); fail this job unless the deploy succeeded.
+          # komodo-deploy.sh gives up after 10 min, so 15 min covers queueing.
+          deadline=$(( $(date +%s) + 900 ))
+          state=none
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            latest=$(gh api "$STATUSES" --jq '.[0] // {} | [.state // "none", .target_url // ""] | @tsv')
+            state=${latest%%$'\t'*}
+            url=${latest#*$'\t'}
+            case $state in
+              success) echo "Deployed: $url"; exit 0 ;;
+              failure | error) echo "::error::Woodpecker deploy $state: $url"; exit 1 ;;
+            esac
+            sleep 10
+          done
+          if [ "$state" = none ]; then
+            echo "::error::Woodpecker never picked up the deployment (no status after 15 min)"
+          else
+            echo "::error::Timed out waiting for the deploy (last state: $state): $url"
+          fi
+          exit 1
