@@ -117,6 +117,7 @@ KOMODO_INIT_ADMIN_PASSWORD=$ADMIN_PASSWORD
 KOMODO_JWT_SECRET=${JWT_SECRET:-$(openssl rand -hex 32)}
 KOMODO_WEBHOOK_SECRET=${WEBHOOK_SECRET:-$(openssl rand -hex 32)}
 EOF
+chmod 600 "$STACK_DIR/.env" # umask only covers new files; v1's .env was 0644
 chown "$OWNER" "$STACK_DIR/.env"
 echo "Wrote $STACK_DIR/.env"
 
