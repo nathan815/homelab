@@ -1,7 +1,7 @@
 ---
 services:
   plex:
-    image: lscr.io/linuxserver/plex:1.43.4@sha256:06e07af2851e6a822e89062b148435495dd794d6d5aaf36247dee05fb3dcc4b8
+    image: lscr.io/linuxserver/plex:1.43.5@sha256:01a53d9c7adcbb3701fbb0a4230c0a37c85453759b6b05a67356c3c7a09de08d
     container_name: plex
     restart: always
     network_mode: host
@@ -22,7 +22,7 @@ services:
       interval: 30s
 
   tautulli:
-    image: ghcr.io/tautulli/tautulli:v2.15.0@sha256:f13daee2a403a95a51902b2625de5f6b944f034e9cd790e9d2a0c5e84c9842cb
+    image: ghcr.io/tautulli/tautulli:v2.18.2@sha256:1b5875fe3193d450a62e7b438eb6701195c841f14f3dcb962e545eda42d3696f
     container_name: plex-tautulli
     restart: always
     volumes:
@@ -188,7 +188,7 @@ services:
 
   qui:
     container_name: qui
-    image: ghcr.io/autobrr/qui:v1.32.0@sha256:13a09cb0f27004dd19510f6af37aac140164ba0f9a13333b8698e41bd2d1df4c
+    image: ghcr.io/autobrr/qui:v1.33.1@sha256:c83ce0370ab372c931ccb3f0ddd0eb1bc850026ce9eafc13ce94443f6f2a2cd3
     restart: always
     user: "1000:1000"
     depends_on:
