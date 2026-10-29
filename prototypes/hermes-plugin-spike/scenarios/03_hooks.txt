@@ -1,0 +1,5 @@
+sleep 30
+send hello hooks
+wait-done 60
+send run TOOL now
+wait-done 60

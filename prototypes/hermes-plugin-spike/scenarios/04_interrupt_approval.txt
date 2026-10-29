@@ -1,0 +1,17 @@
+sleep 30
+send warmup
+wait-done 60
+# interrupt a slow stream
+send SLOW please
+sleep 4
+interrupt
+wait-done 30
+sleep 2
+# slash commands through the adapter
+send /status
+wait-done 30
+send /help
+wait-done 30
+# dangerous command, approve once (trusted.py auto-answers per --approve)
+send DANGER one
+wait-done 60
