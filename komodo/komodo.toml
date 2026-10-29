@@ -1,20 +1,27 @@
 # Komodo Resource Sync: declares servers, stacks and other resources.
 # Applied by the "homelab" resource_sync (Komodo UI: Syncs -> homelab).
 #
-# IMPORTANT: a sync makes Komodo match this file; resources that exist in Komodo
-# but are not declared here may be proposed for deletion. This file was seeded from the live Komodo config on 2026-10-09,
-# so everything that existed is listed. Always review the sync's pending diff
-# before pressing Execute. Add new resources here before creating them in the UI.
+# IMPORTANT: a sync makes Komodo match this file. The sync has delete off, so
+# resources only in Komodo are left alone, but always review the sync's
+# pending diff before pressing Execute. Add new resources here, not in the UI.
 #
-# Stacks with `files_on_host = true` read compose files from /opt/stacks/<name>
-# on the host (copied there by Ansible's deploy-stack role). Git-backed stacks
-# (lanindex, monitoring) are the target model: CI deploys any stack declared with
-# `repo` and `run_directory = "stacks/<name>"` (see komodo/README.md).
+# Komodo v2 (#6). Field names checked against komodo_client v2.3.4.
+#
+# Who owns which folder on a host (komodo/README.md, "Folder ownership"):
+# - /opt/stacks/<name>: Ansible's deploy-stack role (copies stacks/<name>).
+#   `files_on_host = true` stacks run from there and MUST set an absolute
+#   run_directory: in v2 a relative one resolves under Periphery's stack dir.
+# - /opt/komodo/stacks/<name>: Komodo (Periphery root /opt/komodo). Git-backed
+#   stacks (`repo` + `run_directory = "stacks/<name>"`) are cloned there; CI
+#   deploys them (see komodo/README.md). Disposable, re-cloned on demand.
+# - /opt/appdata/<name>: runtime data, owned by neither (#9).
 
+# Periphery connects out to Core (stacks/komodo-periphery), so no address.
+# Each server is first created by its Periphery's onboarding key, then adopted
+# by this sync (same name).
 [[server]]
 name = "docker-main"
 [server.config]
-address = "http://docker.lan:8120"
 enabled = true
 
 ##
@@ -22,7 +29,6 @@ enabled = true
 [[server]]
 name = "pi01"
 [server.config]
-address = "http://pi01.lan:8120"
 enabled = true
 
 ##
@@ -53,12 +59,13 @@ name = "adguardhome"
 server = "pi01"
 poll_for_updates = true
 files_on_host = true
+run_directory = "/opt/stacks/adguardhome"
 file_paths = ["docker-compose.yml"]
 
 ##
 
-# NOTE: runs Periphery itself. Redeploying this from Komodo restarts the agent
-# mid-operation; prefer deploying it via Ansible/manual compose.
+# cAdvisor + Dockge, deployed by Ansible (base.yml). Periphery moved out to
+# stacks/komodo-periphery, so redeploying this from Komodo is safe now.
 [[stack]]
 name = "container-mgmt:docker-main"
 [stack.config]
@@ -89,6 +96,7 @@ name = "media-system"
 server = "docker-main"
 poll_for_updates = true
 files_on_host = true
+run_directory = "/opt/stacks/media-system"
 file_paths = ["docker-compose.yml"]
 
 ##
@@ -121,36 +129,28 @@ name = "nginx-proxy"
 server = "pi01"
 poll_for_updates = true
 files_on_host = true
+run_directory = "/opt/stacks/nginx-proxy"
 file_paths = ["docker-compose.yml"]
 
 ##
 
-# TEMP: test resources from setup; delete these (and their Komodo copies) once unused.
-[[stack]]
-name = "test-komodo-stack"
-[stack.config]
-server = "pi01"
-file_contents = """
-## 🦎 Hello Komodo 🦎
-services:
-  hello_world:
-    image: hello-world
-"""
+# Replaces the procedure Komodo creates on a fresh install
+# (KOMODO_DISABLE_INIT_RESOURCES=true in stacks/komodo). Backups land in
+# /opt/appdata/komodo/backups on pi01 (last 14 kept).
+[[procedure]]
+name = "Backup Core Database"
+description = "Triggers the Core database backup at the scheduled time."
+tags = ["system"]
+config.schedule = "Every day at 03:00"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "BackupCoreDatabase", execution.params = {}, enabled = true }
+]
 
 ##
-
-[[deployment]]
-name = "test"
-[deployment.config]
-server = "docker-main"
-
-##
-
-[[builder]]
-name = "local"
-[builder.config]
-type = "Server"
-params = {}
 
 # The "homelab" resource_sync itself is deliberately NOT declared here: a sync
 # can't update its own resource while it is running ("resource busy"). It is

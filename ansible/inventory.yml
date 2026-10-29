@@ -32,6 +32,15 @@ docker-hosts:
     octoprint:
     docker.lan:
 
+# Hosts running the Komodo Periphery agent (stacks/komodo-periphery, base.yml).
+# komodo_server_name must match the [[server]] name in komodo/komodo.toml.
+komodo-servers:
+  hosts:
+    pi01:
+      komodo_server_name: pi01
+    docker.lan:
+      komodo_server_name: docker-main
+
 proxmox:
   hosts:
     proxmox01:

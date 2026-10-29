@@ -9,6 +9,13 @@
 #
 # Env: KOMODO_URL, KOMODO_API_KEY, KOMODO_API_SECRET, plus Woodpecker's
 # CI_PIPELINE_DEPLOY_TASK and CI_COMMIT_SHA.
+#
+# API shapes checked against Komodo v2.3.4 (komodo_client request.rs and
+# api/{read,write,execute}): POST /<read|write|execute> with
+# {"type": ..., "params": ...} and X-Api-Key/X-Api-Secret headers;
+# DeployStack {stack} returns an Update ({"_id": {"$oid"}, status, success,
+# logs[].stage/stdout/stderr}); GetUpdate {id}; GetVariable {name};
+# CreateVariable / UpdateVariableValue {name, value}.
 set -eu
 
 stack=${CI_PIPELINE_DEPLOY_TASK#deploy:}
