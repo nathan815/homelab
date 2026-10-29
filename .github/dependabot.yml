@@ -11,8 +11,8 @@ updates:
     # Majors that need a planned migration. Remove an entry once that
     # migration is done so dependabot tracks the new major again.
     ignore:
-      # Komodo v1 Core; 2.x needs a Postgres/DocumentDB backend. Replaced by Komodo v2 (#6).
-      - dependency-name: "ghcr.io/ferretdb/ferretdb"
+      # Komodo's DB: tag leads with the Postgres major (17-...); a new one needs pg_upgrade or dump/restore.
+      - dependency-name: "ghcr.io/ferretdb/postgres-documentdb"
         update-types: ["version-update:semver-major"]
       # 3.x: new default config path, drops schema1 manifests; verify with registry-ui first.
       - dependency-name: "registry"
