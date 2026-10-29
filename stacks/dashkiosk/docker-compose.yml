@@ -6,5 +6,5 @@ services:
     command: ["--configuration", "/dashkiosk-config.json"]
     network_mode: host  # for mDNS Chromecast discovery
     volumes:
-      - ./data:/database
+      - ${APPDATA_DIR:-/opt/appdata}/dashkiosk:/database
       - ./config.json:/dashkiosk-config.json

@@ -9,3 +9,4 @@
     - role: deploy-stack
       vars:
         stack_name: media-system
+      tags: media-system
