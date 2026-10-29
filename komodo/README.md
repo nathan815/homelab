@@ -48,27 +48,19 @@ Merging this PR deploys nothing by itself: `deploy.yml` only deploys git-backed 
 **0. Inventory v1 (read-only).** In the v1 UI (`http://pi01.lan:9120`): open Syncs -> `homelab`, or any resource's "Export TOML", and save the full export somewhere outside git. Diff it against `komodo.toml` (seeded from the live config on 2026-10-09). Also write down: Settings -> Variables (names and values), Alerters, Users, API keys, and git/registry provider accounts. Anything worth keeping that isn't in `komodo.toml` gets re-created by hand in step 6, or added to `komodo.toml`. This PR intentionally drops `test-komodo-stack`, the `test` deployment and the empty `local` builder. Generate the secrets in the table above.
 *Rollback: nothing changed.*
 
-**1. Back up v1** (Komodo down from here until step 2 finishes, running stacks unaffected):
+**1–2. Back up v1 and cut Core over: `stacks/komodo/cutover.sh`** (Komodo is down from here until the Ansible run below finishes; running stacks and the v1 agents are unaffected):
 ```bash
-sudo mkdir -p /opt/appdata/komodo/v1-backup
-cd /opt/stacks/komodo && docker compose stop core ferretdb
-docker volume ls | grep sqlite-data   # expect komodo_sqlite-data
-docker run --rm -v komodo_sqlite-data:/data:ro -v /opt/appdata/komodo/v1-backup:/backup \
-  alpine:3.22 tar czf /backup/sqlite-data.tgz -C /data .
-sudo cp -a /opt/stacks/komodo /opt/appdata/komodo/v1-backup/stack-folder
-ls -l /opt/appdata/komodo/v1-backup   # tarball non-empty, folder has .env + docker-compose.yml
+scp stacks/komodo/cutover.sh pi01.lan:
+ssh -t pi01.lan sudo sh cutover.sh
 ```
-*Rollback: `cd /opt/stacks/komodo && docker compose start`.*
+It refuses to run unless `/opt/stacks/komodo` still has the v1 compose file, the `komodo_sqlite-data` volume exists and `/opt/appdata/komodo/v1-backup` doesn't. It shows the plan and asks first, then:
+- stops v1 with its own compose file (`docker compose down`, volumes kept);
+- tars `komodo_sqlite-data` to `/opt/appdata/komodo/v1-backup/sqlite-data.tgz` and copies the stack folder (v1 compose file, `.env`) to `v1-backup/stack-folder`;
+- writes the v2 `.env`: generated Postgres user/password, the v1 JWT and webhook secrets carried over (or generated), and the init admin you type in.
 
-**2. Core cutover.**
-```bash
-cd /opt/stacks/komodo && docker compose down      # v1 compose file: removes v1 containers, keeps volumes
-# Replace .env with the new variable names (see .env.defaults / the table above):
-nano /opt/stacks/komodo/.env
-```
 Then, from your laptop: `./ansible_playbook.sh playbooks/core-services.yml --limit pi01 --tags komodo`. This copies the new compose file and runs `up -d`. The old `komodo.env` stays on the host, unused.
-Check: `docker compose ps` (postgres, ferretdb, core all up), `docker compose logs core | tail -50` (no DB errors). Log in at `http://komodo.lan.nathancj.com` with the init admin, then change its password. Optionally enable 2FA (user menu).
-*Rollback: `docker compose down` (new stack, keeps its volumes), then `sudo cp -a /opt/appdata/komodo/v1-backup/stack-folder/. /opt/stacks/komodo/ && docker compose up -d`. This restores the v1 compose file, `.env` and the untouched `komodo_sqlite-data` volume. v1 agents still run on the hosts, so v1 is fully back. Avoid re-running Ansible's `komodo` tag from `main` until you are ready again.*
+Check: `docker compose ps` (postgres, ferretdb, core all up), `docker compose logs core | tail -50` (no DB errors). Log in at `http://komodo.lan.nathancj.com` with the init admin, then change its password and blank `KOMODO_INIT_ADMIN_PASSWORD` in `.env`. Optionally enable 2FA (user menu).
+*Rollback: `ssh -t pi01.lan sudo sh cutover.sh rollback`. It runs `docker compose down` on the new stack (keeping its volumes), copies `v1-backup/stack-folder` back and starts v1 on the untouched `komodo_sqlite-data` volume. v1 agents still run on the hosts, so v1 is fully back. Avoid re-running Ansible's `komodo` tag from `main` until you are ready again.*
 
 **3. Onboarding key.** UI -> Settings -> Onboarding -> create a key (privileged mode not needed, the servers don't exist yet). Copy the `O-...` value; it is shown once.
 *Rollback: delete the key.*
