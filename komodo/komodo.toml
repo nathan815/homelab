@@ -66,8 +66,10 @@ file_paths = ["docker-compose.yml"]
 
 # cAdvisor + Dockge, deployed by Ansible (base.yml). Periphery moved out to
 # stacks/komodo-periphery, so redeploying this from Komodo is safe now.
+# Komodo v2 stores ':' in names as '_', so use the stored form here or every
+# sync tries to create the stack again ("Resource ... already exists").
 [[stack]]
-name = "container-mgmt:docker-main"
+name = "container-mgmt_docker-main"
 [stack.config]
 server = "docker-main"
 project_name = "container-mgmt"
@@ -79,7 +81,7 @@ file_paths = ["docker-compose.yml"]
 ##
 
 [[stack]]
-name = "container-mgmt:pi01"
+name = "container-mgmt_pi01"
 [stack.config]
 server = "pi01"
 project_name = "container-mgmt"
