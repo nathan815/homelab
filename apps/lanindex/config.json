@@ -27,7 +27,7 @@
     { "name": "Tautulli (Plex Stats)", "url": "https://plexmonitor.$domain" },
     { "name": "Plex FileBrowser", "url": "https://plexfiles.$domain" },
     { "name": "Wizarr (Plex Invites)", "url": "https://plexinvite.$domain" },
-    { "name": "Overseerr (Plex Requests)", "url": "http://plexrequests.$domain" },
+    { "name": "Seerr (Plex Requests)", "url": "https://plexrequests.$domain" },
     { "name": "Sonarr (TV)", "url": "https://sonarr.$domain" },
     { "name": "Radarr (Movies)", "url": "https://radarr.$domain" },
     { "name": "Bazarr (Subtitles)", "url": "https://bazarr.$domain" },

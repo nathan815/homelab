@@ -15,7 +15,7 @@ services:
       - ./config/includes:/etc/nginx/conf.d/includes
       - ./config/nginx-internal-entrypoint.sh:/nginx-internal-entrypoint.sh:ro
       - ./html:/usr/share/nginx/html
-      - /opt/appdata/nginx-proxy/letsencrypt:/etc/letsencrypt:ro
+      - ${APPDATA_DIR:-/opt/appdata}/nginx-proxy/letsencrypt:/etc/letsencrypt:ro
     ports:
       - 80:80
       - 443:443
@@ -34,8 +34,8 @@ services:
     container_name: certbot-lan
     restart: always
     volumes:
-      - /opt/appdata/nginx-proxy/letsencrypt:/etc/letsencrypt
-      - /opt/appdata/nginx-proxy/cloudflare.ini:/cloudflare.ini:ro
+      - ${APPDATA_DIR:-/opt/appdata}/nginx-proxy/letsencrypt:/etc/letsencrypt
+      - ${APPDATA_DIR:-/opt/appdata}/nginx-proxy/cloudflare.ini:/cloudflare.ini:ro
     entrypoint: /bin/sh
     command:
       - -c
