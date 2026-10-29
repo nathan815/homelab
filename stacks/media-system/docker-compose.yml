@@ -18,8 +18,12 @@ services:
     tmpfs:
       - /transcode:size=1G
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider "http://localhost:32400/identity"
+      # linuxserver/plex ships curl, not wget
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:32400/identity"]
       interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   tautulli:
     image: ghcr.io/tautulli/tautulli:v2.15.0@sha256:f13daee2a403a95a51902b2625de5f6b944f034e9cd790e9d2a0c5e84c9842cb
