@@ -48,7 +48,7 @@ dns:
   cache_size: 4194304
   cache_ttl_min: 0
   cache_ttl_max: 0
-  cache_optimistic: false
+  cache_optimistic: true  # issue #1, see docs/adguardhome-offline-dns.md
   bogus_nxdomain: []
   aaaa_disabled: false
   enable_dnssec: false
@@ -56,12 +56,12 @@ dns:
     custom_ip: ""
     enabled: false
     use_custom: false
-  max_goroutines: 0  # https://github.com/nathan815/homelab/issues/1
+  max_goroutines: 2000  # issue #1, see docs/adguardhome-offline-dns.md
   handle_ddr: true
   ipset: []
   ipset_file: ""
   bootstrap_prefer_ipv6: false
-  upstream_timeout: 10s
+  upstream_timeout: 3s  # issue #1, see docs/adguardhome-offline-dns.md
   private_networks: []
   use_private_ptr_resolvers: true
   local_ptr_upstreams: []
