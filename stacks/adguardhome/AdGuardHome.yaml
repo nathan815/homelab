@@ -31,8 +31,6 @@ dns:
     - 149.112.112.10
     - 2620:fe::10
     - 2620:fe::fe:10
-  # Only tried after upstream_dns fails (two tries of upstream_timeout each), so they add
-  # ~6s to every query while the internet is down.
   fallback_dns:
     - 1.1.1.1
     - 8.8.8.8
@@ -50,10 +48,7 @@ dns:
   cache_size: 4194304
   cache_ttl_min: 0
   cache_ttl_max: 0
-  # Answer from expired cache entries (short TTL, refreshed in the background) instead of
-  # waiting on the upstream. During an outage, names looked up in the last 12h
-  # (cache_optimistic_max_age default) still answer instantly and don't hold a request slot.
-  cache_optimistic: true
+  cache_optimistic: true  # issue #1, see docs/adguardhome-offline-dns.md
   bogus_nxdomain: []
   aaaa_disabled: false
   enable_dnssec: false
@@ -61,21 +56,12 @@ dns:
     custom_ip: ""
     enabled: false
     use_custom: false
-  # Max requests processed concurrently, local names included (issue #1). Once full, the UDP
-  # listener stops reading and every query times out. With the internet down an external
-  # query holds its slot ~10-30s before SERVFAIL (bootstrap has a fixed 10s timeout, stale
-  # upstream connections are retried per address, then fallback_dns), far longer than
-  # upstream_timeout. Tested offline: 300 (default) loses 34% of local queries at 10 qps
-  # and 93% at 50 qps. 2000 keeps them at ~1ms through 50 qps (~120MB RSS). 0 (unlimited)
-  # also works, but memory is then unbounded (~500MB at 200 qps).
-  max_goroutines: 2000
+  max_goroutines: 2000  # issue #1, see docs/adguardhome-offline-dns.md
   handle_ddr: true
   ipset: []
   ipset_file: ""
   bootstrap_prefer_ipv6: false
-  # Was 10s. Per-attempt timeout; healthy upstreams answer in <300ms. Shortens how long a
-  # dead-upstream query holds a slot (warm connections: ~30s -> ~20s), not to 3s.
-  upstream_timeout: 3s
+  upstream_timeout: 3s  # issue #1, see docs/adguardhome-offline-dns.md
   private_networks: []
   use_private_ptr_resolvers: true
   local_ptr_upstreams: []
