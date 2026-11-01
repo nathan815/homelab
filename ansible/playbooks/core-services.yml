@@ -2,6 +2,9 @@
 - name: Core services on pi01
   hosts: pi01
   roles:
+    - role: nginx-proxy-certs
+      tags: nginx
+
     - role: deploy-stack
       vars:
         stack_name: nginx-proxy
