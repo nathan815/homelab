@@ -8,7 +8,7 @@
 
 - name: Create nginx-proxy appdata folder
   ansible.builtin.file:
-    path: "{{ nginx_proxy_appdata }}"
+    path: /opt/appdata/nginx-proxy
     state: directory
     owner: root
     group: root
@@ -17,7 +17,7 @@
 
 - name: Create Let's Encrypt storage folder
   ansible.builtin.file:
-    path: "{{ nginx_proxy_appdata }}/letsencrypt"
+    path: /opt/appdata/nginx-proxy/letsencrypt
     state: directory
     owner: root
     group: root
@@ -27,7 +27,7 @@
 - name: Write certbot Cloudflare credentials
   ansible.builtin.copy:
     content: "dns_cloudflare_api_token = {{ secrets.cloudflare_dns_api_token }}\n"
-    dest: "{{ nginx_proxy_appdata }}/cloudflare.ini"
+    dest: /opt/appdata/nginx-proxy/cloudflare.ini
     owner: root
     group: root
     mode: '0600'

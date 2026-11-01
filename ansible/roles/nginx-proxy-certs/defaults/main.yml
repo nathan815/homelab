@@ -1,3 +1,0 @@
----
-# Outside /opt/stacks/nginx-proxy so redeploying the stack never touches certs or the token
-nginx_proxy_appdata: /opt/appdata/nginx-proxy
