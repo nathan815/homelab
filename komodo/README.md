@@ -6,6 +6,7 @@ Komodo v2 (Core 2.3.4) manages the stacks declared in `komodo.toml`. Compose fil
 |---|---|---|
 | Core + FerretDB v2 + Postgres/DocumentDB | `stacks/komodo`, pi01, port 9120 (`http://komodo.lan.nathancj.com`) | Ansible `core-services.yml --tags komodo` (never Komodo itself) |
 | Periphery agent | `stacks/komodo-periphery`, every host in the `komodo-servers` inventory group (pi01, docker.lan) | Ansible `base.yml --tags komodo-periphery` (never Komodo itself) |
+| Woodpecker CI | `stacks/woodpecker`, pi01 | Ansible `core-services.yml --tags woodpecker` (never Komodo: its pipeline performs the deploys, so redeploying it kills the deploy that triggered it) |
 | Servers, stacks, procedures | `komodo/komodo.toml` | the `homelab` resource sync |
 | The sync itself | `komodo/bootstrap.toml` (record only) | created once by hand in the UI |
 
