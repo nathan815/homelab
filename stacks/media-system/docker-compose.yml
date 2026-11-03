@@ -28,6 +28,8 @@ services:
   tautulli:
     image: ghcr.io/tautulli/tautulli:v2.18.2@sha256:1b5875fe3193d450a62e7b438eb6701195c841f14f3dcb962e545eda42d3696f
     container_name: plex-tautulli
+    labels:
+      homelab.backup: "true"
     restart: always
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/tautulli:/config"
@@ -43,6 +45,8 @@ services:
     # Runs as node (1000:1000) with no init of its own, so it needs init: true.
     image: ghcr.io/seerr-team/seerr:v3.5.1@sha256:d8fab675b55ad293ded98fd71efcfd46054cbad9746534ae1cc4794a88c0b3be
     container_name: plex-overseerr
+    labels:
+      homelab.backup: "true"
     restart: always
     init: true
     environment:
@@ -59,6 +63,8 @@ services:
   wizarr:
     image: ghcr.io/wizarrrr/wizarr:v2026.10.1@sha256:08f2c6de534ec7d36d39a4f55b7c5c379021ca881dc519c702aad0ddafbdc67a
     container_name: plex-wizarr
+    labels:
+      homelab.backup: "true"
     restart: unless-stopped
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/wizarr:/data/database"
@@ -68,6 +74,8 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls163@sha256:f9151e5bc1025c6d0a630d503210cdcb6bb55a7cc098562609d96a408d838902
     container_name: prowlarr
+    labels:
+      homelab.backup: "true"
     restart: always
     environment:
       - PUID=1000
@@ -81,6 +89,8 @@ services:
   radarr:
     image: lscr.io/linuxserver/radarr:6.4.4.10685-ls321@sha256:ea6822c956d26db648b237919f41340318f32e5b7dcc4ba702cf256a0f5f3c12
     container_name: radarr
+    labels:
+      homelab.backup: "true"
     restart: always
     environment:
       - PUID=1000
@@ -95,6 +105,8 @@ services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls329@sha256:44b06045a98bc1f237b9ffefc4b28dab64cb29305e4a2a94875ae93b5224e4cc
     container_name: sonarr
+    labels:
+      homelab.backup: "true"
     restart: always
     environment:
       - PUID=1000
@@ -109,6 +121,8 @@ services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:v1.6.2-ls368@sha256:fb0437897eaa7f96cf6ac42f795f8dcc208d34ec969eac5d366454e767304eb9
     container_name: bazarr
+    labels:
+      homelab.backup: "true"
     restart: always
     environment:
       - PUID=1000
@@ -139,6 +153,8 @@ services:
 
   filebrowser:
     container_name: plex-filebrowser
+    labels:
+      homelab.backup: "true"
     image: "filebrowser/filebrowser:s6@sha256:ee4ac79e52966a5f6247f99c7d667c1debfb277a3a61ab829f505aa8f4c74b21"
     restart: always
     volumes:
@@ -170,7 +186,9 @@ services:
 
   qbt:
     container_name: qbt
-    image: linuxserver/qbittorrent:5.3.0@sha256:75ecbb1c89ab7b0a21c4bde40b4820e4f1649d2d56d83b91913422155e8d2a5f
+    labels:
+      homelab.backup: "true"
+    image: linuxserver/qbittorrent:4.5.2@sha256:cd75ae74f83232b23a27ffef5d98f4bee41f247a2b626dcaf0b429b699c6b6a5
     restart: always
     network_mode: "service:gluetun-vpn"
     depends_on:
@@ -192,6 +210,8 @@ services:
 
   qui:
     container_name: qui
+    labels:
+      homelab.backup: "true"
     image: ghcr.io/autobrr/qui:v1.33.1@sha256:c83ce0370ab372c931ccb3f0ddd0eb1bc850026ce9eafc13ce94443f6f2a2cd3
     restart: always
     user: "1000:1000"
