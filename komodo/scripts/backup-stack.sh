@@ -31,7 +31,7 @@
 # volume under volumes/<name>.
 #
 # Env:
-#   BACKUP_ROOT          host dir for archives, must exist (default /opt/appdatabackups)
+#   BACKUP_ROOT          host dir for archives, must exist (default /opt/appdata-backups)
 #   BACKUP_KEEP          archives kept per stack (default 5)
 #   BACKUP_MIN_FREE_MB   free space that must remain after the archive (default 1024)
 #   BACKUP_DATA_ROOTS    host dirs whose bind mounts count as data
@@ -43,7 +43,7 @@
 # shellcheck disable=SC2016 # the '...' scripts run in the helper's shell
 set -eu
 
-BACKUP_ROOT=${BACKUP_ROOT:-/opt/appdatabackups}
+BACKUP_ROOT=${BACKUP_ROOT:-/opt/appdata-backups}
 BACKUP_KEEP=${BACKUP_KEEP:-5}
 BACKUP_MIN_FREE_MB=${BACKUP_MIN_FREE_MB:-1024}
 BACKUP_DATA_ROOTS=${BACKUP_DATA_ROOTS:-/opt/appdata /mnt/data1}
