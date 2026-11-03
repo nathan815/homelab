@@ -170,6 +170,22 @@ file_paths = ["docker-compose.yml"]
 
 ##
 
+[[stack]]
+name = "upsnap"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/upsnap"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+environment = """
+UPSNAP_PORT = 9000
+"""
+
+##
+
 # Replaces the procedure Komodo creates on a fresh install
 # (KOMODO_DISABLE_INIT_RESOURCES=true in stacks/komodo). Backups land in
 # /opt/appdata/komodo/backups on pi01 (last 14 kept).
