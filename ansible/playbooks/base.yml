@@ -95,6 +95,17 @@
         - /opt/stacks/komodo-periphery
       tags: komodo-periphery
 
+    # Pre-deploy backups of stack data (komodo/scripts/backup-stack.sh, #41).
+    # Root-only: the archives hold databases.
+    - name: Create /opt/appdata-backups
+      ansible.builtin.file:
+        path: /opt/appdata-backups
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+      tags: [komodo-periphery, dirs]
+
     - name: Set Komodo server name in komodo-periphery .env
       ansible.builtin.lineinfile:
         path: /opt/stacks/komodo-periphery/.env
