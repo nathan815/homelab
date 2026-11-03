@@ -203,6 +203,24 @@ UPSNAP_PORT = 9000
 
 ##
 
+[[stack]]
+name = "wireguard-vpn"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/wireguard-vpn"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+environment = """
+WG_EXTERNAL_HOST = '[[WG_EXTERNAL_HOST]]'
+WG_LAN_NETWORK = 192.168.0.0/24
+WG_PASSWORD_HASH = '[[WG_PASSWORD_HASH]]'
+"""
+
+##
+
 # Replaces the procedure Komodo creates on a fresh install
 # (KOMODO_DISABLE_INIT_RESOURCES=true in stacks/komodo). Backups land in
 # /opt/appdata/komodo/backups on pi01 (last 14 kept).
