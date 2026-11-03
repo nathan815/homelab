@@ -137,3 +137,47 @@ PRs run `.github/workflows/validate.yml` only (GitHub-hosted, no secrets).
 1. `stacks/<name>/docker-compose.yml`, plus `apps/<name>/Dockerfile` if it's built here (image `ghcr.io/nathan815/<name>:${IMAGE_TAG:-latest}`). Third-party images need no `apps/` folder.
 2. A git-backed `[[stack]]` block in `komodo.toml` named `<name>` with `run_directory = "stacks/<name>"` (copy `lanindex`). For a built image add `IMAGE_TAG = [[<NAME>_IMAGE_TAG]]` to its `environment`.
 3. Sync, then push. If the stack existed under Ansible, follow "Migrating a stack" first.
+4. If it keeps data, opt in to pre-deploy backups (next section).
+
+## Backups (pre-deploy, #41)
+
+A new image can migrate its database one way on first start (uptime-kuma 2.0 -> 2.1 in #25). So a git-backed stack with data backs up before every deploy that changes an image, and a failed backup blocks the deploy. Komodo has no backup for stack data of its own (its `Backup Core Database` procedure dumps only Komodo's DB), so this is `komodo/scripts/backup-stack.sh`, run as the stack's `pre_deploy` command.
+
+**Where it runs.** Periphery v2.3.4 (`bin/periphery/src/api/compose.rs`, `ComposeUp`) runs `pre_deploy` inside the `komodo-periphery` container. It runs after the repo is pulled and `.env` is written, in the run directory (`/opt/komodo/stacks/<stack>/stacks/<stack>`), and before `docker compose pull` and `up`. The new compose file and the script from the same commit are therefore already on disk, and the old containers are still running. If the command fails, the deploy stops there and the running containers are left alone. That container only mounts the docker socket, `/opt/komodo` and `/opt/stacks`, so the script uses nothing but the docker CLI: the `tar` runs in a throwaway helper container (`docker run --rm` of the Periphery image itself, which has GNU tar and gzip and is on every Komodo host) with each data path bind-mounted from the host. **No extra Periphery mounts and no Periphery redeploy are needed.**
+
+**What it saves.** Services labelled `homelab.backup: "true"` in the compose file (the label is read from the new compose file, so it counts from the first deploy that adds it). For each one, the named volumes and the read-write bind mounts under `/opt/appdata` or `/mnt/data1` of its current container, i.e. the data as it is right now. Config bind-mounted from git (`./prometheus`, anything under `/opt/komodo` or `/opt/stacks`) and bulk disks (`/mnt/disk*`) are never included. Labels rather than a path map in the repo, because the paths are already in the compose file. The label sits next to the volumes it covers, travels with the stack when #39 migrates it, and can't drift from the real mounts.
+
+**When.** The backup is skipped when no image changes. That means every `image:` in the new compose file is pinned by digest (as `CLAUDE.md` requires), that image is already present locally, and the project's containers run exactly that set of images. A config-only change (env, ports, labels) therefore costs nothing. Any other case takes a backup: a bumped digest (not pulled yet at this point), an unpinned tag, or a new or missing service. When it backs up, it stops the labelled containers (`docker stop -t 60`, which is safe for SQLite with WAL), writes the archive and starts them again, before compose pulls. Downtime is the archive time. Unlabelled services keep running.
+
+**Where archives go.** `$BACKUP_ROOT/<stack>/<stack>-<UTC yyyymmddThhmmssZ>.tar.gz`, keeping the newest 5. `BACKUP_ROOT` defaults to `/mnt/data1/backups`. On pi01 that is a plain directory on the root SD card. docker-main has no `/mnt/data1`, so stacks there use `BACKUP_ROOT=/mnt/disk2/backups` (2.9 TB free). Create that directory before the first one opts in: the script refuses a missing root rather than creating it on the wrong disk. Before stopping anything, it fails if the archive (counted uncompressed) would leave less than `BACKUP_MIN_FREE_MB` (1024) free. Other knobs (`BACKUP_KEEP`, `BACKUP_DATA_ROOTS`, `BACKUP_FORCE`) are documented in the script header and are set by prefixing the `pre_deploy` command.
+
+### Opting a stack in
+1. In `stacks/<name>/docker-compose.yml`, add to each service that writes data:
+   ```yaml
+       labels:
+         homelab.backup: "true"
+   ```
+   Leave stateless services unlabelled, and also data too big to copy on every image bump (monitoring's Prometheus TSDB, 8.4 GB, more than pi01's free space; losing it loses history only).
+2. In its `[[stack]]` block in `komodo.toml`, next to `file_paths`:
+   ```toml
+   pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup <stack>"
+   ```
+   On docker-main: `"BACKUP_ROOT=/mnt/disk2/backups sh ../../komodo/scripts/backup-stack.sh backup <stack>"`. If the stack sets `project_name`, pass it as a third argument.
+3. Sync. The first deploy of a stack migrated from Ansible reuses the Ansible containers' project, so their data is what gets backed up.
+
+`files_on_host` stacks: Periphery runs their `pre_deploy` too (same `ComposeUp` path), but in `/opt/stacks/<name>`, which holds only that stack's folder and not the script. Opt a stack in once it is git-backed (#39).
+
+### Manual backup and restore
+Same environment as the hook (run on the stack's host, as a user in the `docker` group):
+```bash
+ssh pi01.lan 'docker exec -w /opt/komodo/stacks/monitoring/stacks/monitoring -e BACKUP_FORCE=1 komodo-periphery sh ../../komodo/scripts/backup-stack.sh backup monitoring'
+```
+**Restore** is one command, given the archive's host path:
+```bash
+ssh pi01.lan 'docker exec komodo-periphery sh /opt/komodo/stacks/monitoring/komodo/scripts/backup-stack.sh restore /mnt/data1/backups/monitoring/monitoring-20261102T030000Z.tar.gz'
+```
+It reads the stack, the compose project and the paths from the archive's `MANIFEST`, stops all the project's containers, saves the current data as `<stack>-<time>-pre-restore.tar.gz` (never pruned automatically), empties each path, extracts the archive and starts the containers again. To undo a bad image upgrade, **roll the image back first**: revert the bump PR and let it deploy (that deploy backs up the migrated data too, which is harmless). Then restore. Restoring first would let the new image migrate the restored data again.
+
+### Sizes and follow-ups
+- monitoring (pi01): Uptime Kuma 40 MB plus Grafana's volume 441 MB is about 480 MB uncompressed per backup. The Oct 31 Uptime Kuma tarball compressed 40 MB to 8 MB. Budget up to about 2.4 GB for 5 archives against 5.5 GB free on pi01. adguardhome (1.6 GB) would not fit 5 times on pi01; give it `BACKUP_KEEP=2` or do the off-host copy first.
+- **Off-host copy (follow-up):** on pi01 the archives share the SD card with the data they protect, so they guard against bad migrations, not a dead card. Next step: a nightly copy of `/mnt/data1/backups` to docker-main `/mnt/disk2/backups/pi01` (or a NAS), which also frees pi01 to keep fewer archives.

@@ -15,6 +15,10 @@
 #   stacks (`repo` + `run_directory = "stacks/<name>"`) are cloned there; CI
 #   deploys them (see komodo/README.md). Disposable, re-cloned on demand.
 # - /opt/appdata/<name>: runtime data, owned by neither (#9).
+#
+# Git-backed stacks with data set pre_deploy to komodo/scripts/backup-stack.sh
+# (#41, copy the `monitoring` block). On docker-main prefix the command with
+# BACKUP_ROOT=/mnt/disk2/backups: that host has no /mnt/data1.
 
 # Periphery connects out to Core (stacks/komodo-periphery), so no address.
 # Each server is first created by its Periphery's onboarding key, then adopted
@@ -115,6 +119,10 @@ repo = "nathan815/homelab"
 branch = "main"
 run_directory = "stacks/monitoring"
 file_paths = ["docker-compose.yml"]
+# Back up the homelab.backup-labelled services' data before an image change
+# (komodo/README.md, "Backups"). Runs in the run directory, inside Periphery;
+# a failure blocks the deploy.
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup monitoring"
 environment = """
 PROMETHEUS_PORT = 3001
 GRAFANA_PORT = 3000

@@ -41,7 +41,7 @@ jobs:
           docker run --rm -v "$PWD/stacks/monitoring/blackbox/config:/config:ro" \
             prom/blackbox-exporter --config.file=/config/blackbox.yml --config.check
       - name: shellcheck
-        run: shellcheck --severity=error stacks/*.sh ci/*.sh
+        run: shellcheck --severity=error stacks/*.sh ci/*.sh komodo/scripts/*.sh
       - name: deployable stacks
         run: |
           echo "Deployable: $(python3 .github/scripts/deploy_plan.py list)"
