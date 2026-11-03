@@ -20,8 +20,8 @@ services:
       - 80:80
       - 443:443
     healthcheck:
-      # Any HTTP response over TLS counts; the upstream behind lan.nathancj.com may be down
-      test: curl -sk -o /dev/null --resolve lan.nathancj.com:443:127.0.0.1 https://lan.nathancj.com/
+      # /healthz on the loopback-only server in nginx_internal.conf; https also proves the cert loaded
+      test: curl -fsS -o /dev/null http://127.0.0.1/healthz && curl -fsSk -o /dev/null https://127.0.0.1/healthz
       interval: 30s
       timeout: 5s
       start_period: 30s
@@ -68,7 +68,8 @@ services:
     ports:
       - 8000:80
     healthcheck:
-      test: curl -s http://localhost:80
+      # /healthz on the loopback-only server in nginx_public.conf
+      test: curl -fsS -o /dev/null http://127.0.0.1/healthz
       interval: 30s
       timeout: 5s
       start_period: 30s
