@@ -132,10 +132,7 @@ case "$STACK" in
     upsnap) deploy="./ansible_playbook.sh playbooks/core-services.yml --limit $host --tags $STACK" ;;
     container-mgmt) deploy="./ansible_playbook.sh playbooks/base.yml --limit $host --tags dirs,container-mgmt" ;;
     media-system) deploy="./ansible_playbook.sh playbooks/media-services.yml --limit $host --tags media-system" ;;
-    adguardhome)
-        ip=$(hostname -I | awk '{print $1}')
-        deploy="./ansible_playbook.sh playbooks/dns.yml --limit $host --tags adguardhome --skip-tags docker_up -e ansible_ssh_host=$ip
-     then: ssh $ip 'cd $STACK_DIR && docker compose up -d'   (DNS is down, so use the IP and skip the image pull)" ;;
+    adguardhome) deploy="adguardhome is deployed by Komodo now (#39): run the homelab sync, then deploy it from the UI; see docs/appdata-migration.md section 5" ;;
     *) deploy="deploy the new compose file to $STACK_DIR, then docker compose up -d" ;;
 esac
 

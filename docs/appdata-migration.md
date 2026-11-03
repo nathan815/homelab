@@ -109,17 +109,7 @@ Deployed by `base.yml` to every `docker-hosts` host, so do it per host: `./ansib
 Not deployed by Ansible or Komodo, and there is no `/opt/stacks/viewtube` on pi01 or docker.lan. If it runs somewhere, run the script there (`STACKS_DIR=<parent dir>` if it isn't under `/opt/stacks`) and copy the new compose file by hand in place of the Ansible deploy. **Nothing guards this one.** Its mongo data (`data/db`) must be moved with the stack stopped. If it isn't running anywhere, there is nothing to migrate.
 
 ### 5. adguardhome (pi01, 1.6G): LAN DNS
-pi01 (and the LAN) resolve through AdGuard (`/etc/resolv.conf` on pi01 is `nameserver 192.168.0.148`, AdGuard itself). While it is down, `pi01.lan` does not resolve and image pulls on pi01 fail. So:
-- Use the IP for SSH and Ansible: `ssh 192.168.0.148`, and `-e ansible_ssh_host=192.168.0.148` on the playbook.
-- The script's pre-pass copies the 1.6G while AdGuard still serves DNS, so the outage covers only the final delta copy and the deploy.
-- Deploy without the `--pull always` up, then start locally (the image is already on the host). The script prints these two lines with the IP:
-  ```bash
-  ./ansible_playbook.sh playbooks/dns.yml --limit pi01 --tags adguardhome --skip-tags docker_up -e ansible_ssh_host=192.168.0.148
-  ssh 192.168.0.148 'cd /opt/stacks/adguardhome && docker compose up -d'
-  ```
-- Back up first: `sudo tar -C /opt/stacks/adguardhome/data -czf ~/adguardhome-config-$(date +%F).tgz config` (the config is what matters; the 1.6G is logs/stats).
-- Verify: `dig @192.168.0.148 example.com`, `dig @192.168.0.148 pi01.lan` (rewrites), the UI on port 4000 logs in, and filters and clients are present.
-- Do this in a quiet window. Rollback is the generic one; DNS is down while you do it.
+Deployed by Komodo now (#39), so this stack does not use `migrate-appdata.sh` (it stops the stack, and DNS with it). pi01 and the LAN resolve through AdGuard, so keep it running while the data is copied, and let the Komodo deploy do the switch. Steps and rollback are in the PR that moved it (`komodo/komodo.toml`, stack `adguardhome`).
 
 ### 6. media-system (docker.lan, 4.2G), with Plex last
 One compose project, so the whole stack moves at once. Within it, the risk is Plex (3.1G, hard to rebuild) > Sonarr/Radarr (databases) > the rest. "Plex last" means: do every other stack first, and migrate media-system last.
