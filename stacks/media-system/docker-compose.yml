@@ -179,10 +179,9 @@ services:
       - "51420:51420/udp" # QBT
     environment:
       - VPN_SERVICE_PROVIDER=${VPN_PROVIDER:-nordvpn}
-      - OPENVPN_USER=${VPN_USERNAME}
-      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - WIREGUARD_PRIVATE_KEY=${VPN_WG_PRIVATE_KEY}
       - SERVER_COUNTRIES=${VPN_COUNTRIES:-United States}
-      - VPN_TYPE=${VPN_TYPE:-openvpn}
+      - VPN_TYPE=${VPN_TYPE:-wireguard}
 
   qbt:
     container_name: qbt
