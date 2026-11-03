@@ -7,11 +7,6 @@
 
     - role: deploy-stack
       vars:
-        stack_name: nginx-proxy
-      tags: nginx
-
-    - role: deploy-stack
-      vars:
         stack_name: komodo
       tags: komodo
 
