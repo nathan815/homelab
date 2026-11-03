@@ -3,10 +3,3 @@
   roles:
     - role: plex-media-mounts
       tags: [mounts]
-
-- hosts: docker.lan
-  roles:
-    - role: deploy-stack
-      vars:
-        stack_name: media-system
-      tags: media-system

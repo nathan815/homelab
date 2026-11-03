@@ -147,9 +147,15 @@ name = "media-system"
 [stack.config]
 server = "docker-main"
 poll_for_updates = true
-files_on_host = true
-run_directory = "/opt/stacks/media-system"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/media-system"
 file_paths = ["docker-compose.yml"]
+pre_deploy.command = "BACKUP_KEEP=2 sh ../../komodo/scripts/backup-stack.sh backup"
+environment = """
+VPN_USERNAME = [[MEDIA_VPN_USERNAME]]
+VPN_PASSWORD = [[MEDIA_VPN_PASSWORD]]
+"""
 
 ##
 
