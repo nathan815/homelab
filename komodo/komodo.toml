@@ -126,6 +126,23 @@ file_paths = ["docker-compose.yml"]
 ##
 
 [[stack]]
+name = "docker-registry"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/docker-registry"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "BACKUP_KEEP=2 BACKUP_DATA_ROOTS='/opt/appdata /mnt/data1 /media/plexmedia01/docker-registry-data' sh ../../komodo/scripts/backup-stack.sh backup"
+environment = """
+DOCKER_REGISTRY_PORT = 5001
+DOCKER_REGISTRY_DATA_DIR = /media/plexmedia01/docker-registry-data
+"""
+
+##
+
+[[stack]]
 name = "media-system"
 [stack.config]
 server = "docker-main"
