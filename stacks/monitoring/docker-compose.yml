@@ -12,7 +12,6 @@ services:
       # Outside /opt/stacks/monitoring: Komodo owns that folder (git clone)
       - /mnt/data1/monitoring-data/uptime-kuma:/app/data
     labels:
-      # Back up this service's data before an image change (komodo/README.md, Backups)
       homelab.backup: "true"
     ports:
       - 3002:3001
