@@ -17,11 +17,6 @@
 
     - role: deploy-stack
       vars:
-        stack_name: upsnap
-      tags: upsnap
-
-    - role: deploy-stack
-      vars:
         stack_name: komodo
       tags: komodo
 
