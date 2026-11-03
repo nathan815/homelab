@@ -119,9 +119,6 @@ repo = "nathan815/homelab"
 branch = "main"
 run_directory = "stacks/monitoring"
 file_paths = ["docker-compose.yml"]
-# Back up the homelab.backup-labelled services' data before an image change
-# (komodo/README.md, "Backups"). Runs in the run directory, inside Periphery;
-# a failure blocks the deploy.
 pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup monitoring"
 environment = """
 PROMETHEUS_PORT = 3001
