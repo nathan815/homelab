@@ -1,6 +1,6 @@
 # Moving runtime data to /opt/appdata (#9)
 
-Runtime data moves out of the stack folders (`/opt/stacks/<stack>/data`) into `/opt/appdata/<stack>`, which neither Ansible nor Komodo owns (folder ownership table in `komodo/README.md`). Compose files mount `${APPDATA_DIR:-/opt/appdata}/<stack>/...`. Bulk media stays on `/mnt/disk*` / `/media/plexmedia01`. Read-only config tracked in git (`dashkiosk/config.json`, `media-system/filebrowser_config.json`, `nginx-proxy/config`) stays relative.
+Runtime data moves out of the stack folders (`/opt/stacks/<stack>/data`) into `/opt/appdata/<stack>`, which neither Ansible nor Komodo owns (folder ownership table in `komodo/README.md`). Compose files mount `${APPDATA_DIR:-/opt/appdata}/<stack>/...`. Bulk media stays on `/mnt/disk*` / `/media/plexmedia01`. Read-only config tracked in git (`media-system/filebrowser_config.json`, `nginx-proxy/config`) stays relative.
 
 The mapping is the same for every stack: the **contents** of `/opt/stacks/<stack>/data/` become `/opt/appdata/<stack>/`. For example, `media-system/data/plex` becomes `/opt/appdata/media-system/plex`.
 
@@ -20,7 +20,7 @@ What is **not** protected: copying the new compose file by hand (e.g. `viewtube`
 | Host | Stack | `./data` size | Notes |
 |---|---|---|---|
 | pi01 | upsnap | 22M | files owned by root |
-| pi01 | dashkiosk | 36K | one sqlite from 2024-05; **container not running** |
+| pi01 | dashkiosk | 36K | retired (#39) |
 | pi01 | container-mgmt (dockge) | 108K | |
 | docker.lan | container-mgmt (dockge) | 92K | |
 | octoprint | container-mgmt (dockge) | not measured (no SSH key access) | probably tiny |
@@ -99,8 +99,8 @@ sudo rm -rf /opt/stacks/$S/data.pre-appdata /opt/stacks/$S/docker-compose.yml.pr
 ### 1. upsnap (pi01, 22M)
 Playbook `core-services.yml --limit pi01 --tags upsnap`. Verify: `http://upsnap.lan/` lists the devices and login works. `curl -fs http://localhost:9000/api/health`.
 
-### 2. dashkiosk (pi01, 36K)
-Not currently running (no `dashkiosk` container on pi01), so the script only moves the 36K. Note that the Ansible deploy (`core-services.yml --limit pi01 --tags dashkiosk`) **starts** it. If it is meant to stay off, add `--skip-tags docker_up` to copy the files only, or decide whether to retire the stack. Verify (if started): the admin UI shows the saved displays.
+### 2. dashkiosk
+Retired (#39): never ran after 2024-05, so its stack, playbook entry and data were removed instead of migrated.
 
 ### 3. container-mgmt / dockge (pi01, docker.lan, octoprint; ~100K each)
 Deployed by `base.yml` to every `docker-hosts` host, so do it per host: `./ansible_playbook.sh playbooks/base.yml --limit <host> --tags dirs,container-mgmt`. Order: octoprint, docker.lan, pi01. The script's `docker compose down` also stops cAdvisor for a minute (a short metrics gap). With #29 merged, Periphery lives in its own stack and is unaffected; before #29, `down` would also stop the v1 `komodo-periphery` until the deploy brings it back. Verify: Dockge UI on port 5555 loads and logs in (its data holds the user and settings).

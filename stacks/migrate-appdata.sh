@@ -129,7 +129,7 @@ case "$(hostname -s)" in
     *) host=$(hostname -s) ;;
 esac
 case "$STACK" in
-    upsnap|dashkiosk) deploy="./ansible_playbook.sh playbooks/core-services.yml --limit $host --tags $STACK" ;;
+    upsnap) deploy="./ansible_playbook.sh playbooks/core-services.yml --limit $host --tags $STACK" ;;
     container-mgmt) deploy="./ansible_playbook.sh playbooks/base.yml --limit $host --tags dirs,container-mgmt" ;;
     media-system) deploy="./ansible_playbook.sh playbooks/media-services.yml --limit $host --tags media-system" ;;
     adguardhome)
