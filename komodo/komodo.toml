@@ -17,8 +17,7 @@
 # - /opt/appdata/<name>: runtime data, owned by neither (#9).
 #
 # Git-backed stacks with data set pre_deploy to komodo/scripts/backup-stack.sh
-# (#41, copy the `monitoring` block). On docker-main prefix the command with
-# BACKUP_ROOT=/mnt/disk2/backups: that host has no /mnt/data1.
+# (#41, copy the `monitoring` block).
 
 # Periphery connects out to Core (stacks/komodo-periphery), so no address.
 # Each server is first created by its Periphery's onboarding key, then adopted

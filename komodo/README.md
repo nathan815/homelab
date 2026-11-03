@@ -149,7 +149,7 @@ A new image can migrate its database one way on first start (uptime-kuma 2.0 -> 
 
 **When.** The backup is skipped when no image changes. That means every `image:` in the new compose file is pinned by digest (as `CLAUDE.md` requires), that image is already present locally, and the project's containers run exactly that set of images. A config-only change (env, ports, labels) therefore costs nothing. Any other case takes a backup: a bumped digest (not pulled yet at this point), an unpinned tag, or a new or missing service. When it backs up, it stops the labelled containers (`docker stop -t 60`, which is safe for SQLite with WAL), writes the archive and starts them again, before compose pulls. Downtime is the archive time. Unlabelled services keep running.
 
-**Where archives go.** `$BACKUP_ROOT/<stack>/<stack>-<UTC yyyymmddThhmmssZ>.tar.gz`, keeping the newest 5. `BACKUP_ROOT` defaults to `/mnt/data1/backups`. On pi01 that is a plain directory on the root SD card. docker-main has no `/mnt/data1`, so stacks there use `BACKUP_ROOT=/mnt/disk2/backups` (2.9 TB free). Create that directory before the first one opts in: the script refuses a missing root rather than creating it on the wrong disk. Before stopping anything, it fails if the archive (counted uncompressed) would leave less than `BACKUP_MIN_FREE_MB` (1024) free. Other knobs (`BACKUP_KEEP`, `BACKUP_DATA_ROOTS`, `BACKUP_FORCE`) are documented in the script header and are set by prefixing the `pre_deploy` command.
+**Where archives go.** `$BACKUP_ROOT/<stack>/<stack>-<UTC yyyymmddThhmmssZ>.tar.gz`, keeping the newest 5. `BACKUP_ROOT` defaults to `/opt/appdatabackups`, a sibling of `/opt/appdata` on the root disk of both hosts (on pi01 the SD card, 5.5 GB free; on docker-main 8.3 GB). It is not under `/opt/appdata`, which holds one folder per stack. Create it by hand on each host before the first stack opts in (`sudo mkdir /opt/appdatabackups`): the script refuses a missing root. Set `BACKUP_ROOT` to use another disk. Before stopping anything, it fails if the archive (counted uncompressed) would leave less than `BACKUP_MIN_FREE_MB` (1024) free. Other knobs (`BACKUP_KEEP`, `BACKUP_DATA_ROOTS`, `BACKUP_FORCE`) are documented in the script header and are set by prefixing the `pre_deploy` command.
 
 ### Opting a stack in
 1. In `stacks/<name>/docker-compose.yml`, add to each service that writes data:
@@ -162,7 +162,7 @@ A new image can migrate its database one way on first start (uptime-kuma 2.0 -> 
    ```toml
    pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
    ```
-   On docker-main: `"BACKUP_ROOT=/mnt/disk2/backups sh ../../komodo/scripts/backup-stack.sh backup"`. The stack name comes from the run directory (`stacks/<stack>`), so the line is the same for every stack. If the stack sets `project_name`, pass both: `backup <stack> <project>`.
+   The stack name comes from the run directory (`stacks/<stack>`), so the line is the same for every stack. If the stack sets `project_name`, pass both: `backup <stack> <project>`.
 3. Sync. The first deploy of a stack migrated from Ansible reuses the Ansible containers' project, so their data is what gets backed up.
 
 `files_on_host` stacks: Periphery runs their `pre_deploy` too (same `ComposeUp` path), but in `/opt/stacks/<name>`, which holds only that stack's folder and not the script. Opt a stack in once it is git-backed (#39).
@@ -174,10 +174,10 @@ ssh pi01.lan 'docker exec -w /opt/komodo/stacks/monitoring/stacks/monitoring -e 
 ```
 **Restore** is one command, given the archive's host path:
 ```bash
-ssh pi01.lan 'docker exec komodo-periphery sh /opt/komodo/stacks/monitoring/komodo/scripts/backup-stack.sh restore /mnt/data1/backups/monitoring/monitoring-20261102T030000Z.tar.gz'
+ssh pi01.lan 'docker exec komodo-periphery sh /opt/komodo/stacks/monitoring/komodo/scripts/backup-stack.sh restore /opt/appdatabackups/monitoring/monitoring-20261102T030000Z.tar.gz'
 ```
 It reads the stack, the compose project and the paths from the archive's `MANIFEST`, stops all the project's containers, saves the current data as `<stack>-<time>-pre-restore.tar.gz` (never pruned automatically), empties each path, extracts the archive and starts the containers again. To undo a bad image upgrade, **roll the image back first**: revert the bump PR and let it deploy (that deploy backs up the migrated data too, which is harmless). Then restore. Restoring first would let the new image migrate the restored data again.
 
 ### Sizes and follow-ups
 - monitoring (pi01): Uptime Kuma 40 MB plus Grafana's volume 441 MB is about 480 MB uncompressed per backup. The Oct 31 Uptime Kuma tarball compressed 40 MB to 8 MB. Budget up to about 2.4 GB for 5 archives against 5.5 GB free on pi01. adguardhome (1.6 GB) would not fit 5 times on pi01; give it `BACKUP_KEEP=2` or do the off-host copy first.
-- **Off-host copy (follow-up):** on pi01 the archives share the SD card with the data they protect, so they guard against bad migrations, not a dead card. Next step: a nightly copy of `/mnt/data1/backups` to docker-main `/mnt/disk2/backups/pi01` (or a NAS), which also frees pi01 to keep fewer archives.
+- **Off-host copy (follow-up):** on pi01 the archives share the SD card with the data they protect, so they guard against bad migrations, not a dead card. Next step: a nightly copy of `/opt/appdatabackups` to docker-main `/mnt/disk2/backups/pi01` (or a NAS), which also frees pi01 to keep fewer archives.
