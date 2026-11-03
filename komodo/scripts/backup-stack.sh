@@ -1,7 +1,8 @@
 #!/bin/sh
 # Back up or restore one compose stack's persistent data (#41).
 #
-#   backup-stack.sh backup <stack> [project]   run in the stack's compose folder
+#   backup-stack.sh backup [stack] [project]   run in the stack's compose folder;
+#                                              stack defaults to that folder's name
 #   backup-stack.sh restore <archive>          host path of a backup archive
 #
 # Komodo runs `backup` as the stack's pre_deploy command (komodo/komodo.toml),
@@ -55,7 +56,7 @@ die() {
 }
 
 usage() {
-  echo "usage: $0 backup <stack> [project] | restore <archive>" >&2
+  echo "usage: $0 backup [stack] [project] | restore <archive>" >&2
   exit 2
 }
 
@@ -272,10 +273,12 @@ cmd_restore() {
   start_containers
 }
 
-[ $# -ge 2 ] || usage
+[ $# -ge 1 ] || usage
 case $1 in
   backup)
-    stack=$2 project=${3:-$2}
+    # Komodo runs git-backed stacks in .../stacks/<stack>, so that folder's name
+    # is the stack, and the compose project unless it is renamed.
+    stack=${2:-$(basename "$PWD")} project=${3:-$stack}
     cmd_backup
     ;;
   restore)

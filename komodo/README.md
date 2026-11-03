@@ -160,9 +160,9 @@ A new image can migrate its database one way on first start (uptime-kuma 2.0 -> 
    Leave stateless services unlabelled, and also data too big to copy on every image bump (monitoring's Prometheus TSDB, 8.4 GB, more than pi01's free space; losing it loses history only).
 2. In its `[[stack]]` block in `komodo.toml`, next to `file_paths`:
    ```toml
-   pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup <stack>"
+   pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
    ```
-   On docker-main: `"BACKUP_ROOT=/mnt/disk2/backups sh ../../komodo/scripts/backup-stack.sh backup <stack>"`. If the stack sets `project_name`, pass it as a third argument.
+   On docker-main: `"BACKUP_ROOT=/mnt/disk2/backups sh ../../komodo/scripts/backup-stack.sh backup"`. The stack name comes from the run directory (`stacks/<stack>`), so the line is the same for every stack. If the stack sets `project_name`, pass both: `backup <stack> <project>`.
 3. Sync. The first deploy of a stack migrated from Ansible reuses the Ansible containers' project, so their data is what gets backed up.
 
 `files_on_host` stacks: Periphery runs their `pre_deploy` too (same `ComposeUp` path), but in `/opt/stacks/<name>`, which holds only that stack's folder and not the script. Opt a stack in once it is git-backed (#39).
@@ -170,7 +170,7 @@ A new image can migrate its database one way on first start (uptime-kuma 2.0 -> 
 ### Manual backup and restore
 Same environment as the hook (run on the stack's host, as a user in the `docker` group):
 ```bash
-ssh pi01.lan 'docker exec -w /opt/komodo/stacks/monitoring/stacks/monitoring -e BACKUP_FORCE=1 komodo-periphery sh ../../komodo/scripts/backup-stack.sh backup monitoring'
+ssh pi01.lan 'docker exec -w /opt/komodo/stacks/monitoring/stacks/monitoring -e BACKUP_FORCE=1 komodo-periphery sh ../../komodo/scripts/backup-stack.sh backup'
 ```
 **Restore** is one command, given the archive's host path:
 ```bash
