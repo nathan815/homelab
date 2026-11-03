@@ -32,8 +32,12 @@ services:
       - woodpecker-server
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # Persists agent.conf (agent ID) so a recreated container reuses its registration instead of adding a new agent
+      - woodpecker-agent-config:/etc/woodpecker
     environment:
       - WOODPECKER_SERVER=woodpecker-server:9000
+      # Readable agent name in the UI (defaults to the container hostname)
+      - WOODPECKER_HOSTNAME=${WOODPECKER_AGENT_HOSTNAME:-pi01-agent}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
       - WOODPECKER_MAX_WORKFLOWS=${WOODPECKER_MAX_WORKFLOWS:-2}
     networks:
@@ -41,6 +45,7 @@ services:
 
 volumes:
   woodpecker-server-data:
+  woodpecker-agent-config:
 
 networks:
   woodpecker:
