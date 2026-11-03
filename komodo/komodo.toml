@@ -64,8 +64,6 @@ file_paths = ["docker-compose.yml"]
 
 ##
 
-# Git-backed (was Ansible's deploy-stack, dns.yml). The Cloudflare API token is a
-# Komodo secret variable (Settings -> Variables). No volumes, no data.
 [[stack]]
 name = "cloudflare-ddns"
 [stack.config]
