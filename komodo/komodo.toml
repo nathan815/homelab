@@ -153,20 +153,8 @@ run_directory = "stacks/media-system"
 file_paths = ["docker-compose.yml"]
 pre_deploy.command = "BACKUP_KEEP=2 sh ../../komodo/scripts/backup-stack.sh backup"
 environment = """
-PLEX_FILEBROWSER_PORT = 8080
-TAUTULLI_PORT = 8081
-OVERSEERR_PORT = 8082
-WIZARR_PORT = 8083
-PROWLARR_PORT = 8084
-RADARR_PORT = 8085
-SONARR_PORT = 8086
-BAZARR_PORT = 8087
-QBT_UI_PORT = 8089
-VPN_PROVIDER = nordvpn
 VPN_USERNAME = [[MEDIA_VPN_USERNAME]]
 VPN_PASSWORD = [[MEDIA_VPN_PASSWORD]]
-VPN_COUNTRIES = United States
-VPN_TYPE = openvpn
 """
 
 ##

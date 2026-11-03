@@ -38,7 +38,7 @@ services:
       - PGID=1000
       - TZ=America/Detroit
     ports:
-      - "${TAUTULLI_PORT}:8181"
+      - "${TAUTULLI_PORT:-8081}:8181"
 
   overseerr:
     # Seerr, the Overseerr successor. Migrates the old Overseerr config on first start.
@@ -54,7 +54,7 @@ services:
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/overseerr:/app/config"
     ports:
-      - "${OVERSEERR_PORT}:5055"
+      - "${OVERSEERR_PORT:-8082}:5055"
     healthcheck:
       test: wget --no-verbose --tries=1 --spider "http://localhost:5055/api/v1/settings/public"
       interval: 30s
@@ -69,7 +69,7 @@ services:
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/wizarr:/data/database"
     ports:
-      - "${WIZARR_PORT}:5690"
+      - "${WIZARR_PORT:-8083}:5690"
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls163@sha256:f9151e5bc1025c6d0a630d503210cdcb6bb55a7cc098562609d96a408d838902
@@ -84,7 +84,7 @@ services:
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/prowlarr:/config"
     ports:
-      - "${PROWLARR_PORT}:9696"
+      - "${PROWLARR_PORT:-8084}:9696"
 
   radarr:
     image: lscr.io/linuxserver/radarr:6.4.4.10685-ls321@sha256:ea6822c956d26db648b237919f41340318f32e5b7dcc4ba702cf256a0f5f3c12
@@ -100,7 +100,7 @@ services:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/radarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
-      - "${RADARR_PORT}:7878"
+      - "${RADARR_PORT:-8085}:7878"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls329@sha256:44b06045a98bc1f237b9ffefc4b28dab64cb29305e4a2a94875ae93b5224e4cc
@@ -116,7 +116,7 @@ services:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/sonarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
-      - "${SONARR_PORT}:8989"
+      - "${SONARR_PORT:-8086}:8989"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:v1.6.2-ls368@sha256:fb0437897eaa7f96cf6ac42f795f8dcc208d34ec969eac5d366454e767304eb9
@@ -132,7 +132,7 @@ services:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/bazarr:/config"
       - "/media/plexmedia01:/media01"
     ports:
-      - "${BAZARR_PORT}:6767"
+      - "${BAZARR_PORT:-8087}:6767"
 
   samba:
     image: docker.io/servercontainers/samba:a3.24.1-s4.23.8-r0@sha256:06eb4c7aed0d0b705d45c09785f1eb96299a58004ed02ff048b59471aca2d481
@@ -165,7 +165,7 @@ services:
       - PUID=1000
       - PGID=1000
     ports:
-      - "${PLEX_FILEBROWSER_PORT}:80"
+      - "${PLEX_FILEBROWSER_PORT:-8080}:80"
 
   gluetun-vpn:
     container_name: gluetun-vpn
@@ -174,15 +174,15 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - "${QBT_UI_PORT}:${QBT_UI_PORT}"
+      - "${QBT_UI_PORT:-8089}:${QBT_UI_PORT:-8089}"
       - "51420:51420" # QBT
       - "51420:51420/udp" # QBT
     environment:
-      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER:-nordvpn}
       - OPENVPN_USER=${VPN_USERNAME}
       - OPENVPN_PASSWORD=${VPN_PASSWORD}
-      - SERVER_COUNTRIES=${VPN_COUNTRIES}
-      - VPN_TYPE=${VPN_TYPE}
+      - SERVER_COUNTRIES=${VPN_COUNTRIES:-United States}
+      - VPN_TYPE=${VPN_TYPE:-openvpn}
 
   qbt:
     container_name: qbt
@@ -194,7 +194,7 @@ services:
     depends_on:
       - gluetun-vpn
     environment:
-      - WEBUI_PORT=${QBT_UI_PORT}
+      - WEBUI_PORT=${QBT_UI_PORT:-8089}
       - PUID=1000
       - PGID=1000
       - TZ=America/New_York
@@ -203,7 +203,7 @@ services:
       - "/media/plexmedia01:/plexmedia01"
       - "/media/plexmedia01:/media01"
     healthcheck:
-        test: curl -s http://localhost:${QBT_UI_PORT}/api/v2/app/version
+        test: curl -s http://localhost:${QBT_UI_PORT:-8089}/api/v2/app/version
         interval: 20s
         timeout: 10s
         start_period: 30s
