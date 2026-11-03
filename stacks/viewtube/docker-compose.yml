@@ -23,7 +23,7 @@ services:
 
   viewtube-mongodb:
     restart: unless-stopped
-    image: mongo:7@sha256:c53852c00c23ca9f23fc39690350ffa9a80e3642fe8f96879726d8da0abe80a7
+    image: mongo:7@sha256:8bb4442761a63a8dda452744082cdac9644b429807eb977b42324a63cef59ca4
     networks:
       - viewtube
     volumes:
@@ -31,7 +31,7 @@ services:
 
   viewtube-redis:
     restart: unless-stopped
-    image: redis:7@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85
+    image: redis:7@sha256:b6b6e3dc0c0952737748e55d5d885272840c7e42ba41ab1d5489f693419882f5
     networks:
       - viewtube
     volumes:
