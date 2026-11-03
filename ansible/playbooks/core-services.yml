@@ -12,11 +12,6 @@
 
     - role: deploy-stack
       vars:
-        stack_name: dashkiosk
-      tags: dashkiosk
-
-    - role: deploy-stack
-      vars:
         stack_name: wireguard-vpn
       tags: [wireguard, vpn]
 
