@@ -259,6 +259,37 @@ UPSNAP_PORT = 9000
 ##
 
 [[stack]]
+name = "woodpecker"
+[stack.config]
+server = "pi01"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/woodpecker"
+file_paths = ["docker-compose.yml"]
+# MANUAL DEPLOY ONLY. Woodpecker's own pipeline runs the CI deploys, so a CI
+# redeploy would recreate the agent mid-run and kill the deploy that started it.
+# Hence no poll_for_updates, and .github/scripts/deploy_plan.py (MANUAL_ONLY)
+# and the refuse-woodpecker step in .woodpecker/deploy.yaml both refuse it. Deploy it from the Komodo UI when no
+# pipeline is running (komodo/README.md, "Woodpecker").
+# State is in named volumes (woodpecker-server-data, woodpecker-agent-config),
+# not bind mounts, so there is no pre_deploy file backup (backup-stack.sh covers
+# bind mounts); see the README for a volume snapshot before a major bump.
+# Secrets are Komodo secret variables (Settings -> Variables).
+environment = """
+WOODPECKER_HOST = https://woodpecker.lan.nathancj.com
+WOODPECKER_ADMIN = nathan815
+WOODPECKER_WEBHOOK_HOST = https://ci-hooks.nathancj.com
+WOODPECKER_GITHUB_CLIENT = [[WOODPECKER_GITHUB_CLIENT]]
+WOODPECKER_GITHUB_SECRET = [[WOODPECKER_GITHUB_SECRET]]
+WOODPECKER_AGENT_SECRET = [[WOODPECKER_AGENT_SECRET]]
+WOODPECKER_GRPC_SECRET = [[WOODPECKER_GRPC_SECRET]]
+WOODPECKER_PORT = 8001
+WOODPECKER_MAX_WORKFLOWS = 2
+"""
+
+##
+
+[[stack]]
 name = "wireguard-vpn"
 [stack.config]
 server = "pi01"
