@@ -7,6 +7,17 @@ when:
     evaluate: 'CI_PIPELINE_DEPLOY_TARGET == "production" && CI_PIPELINE_DEPLOY_TASK startsWith "deploy:"'
 
 steps:
+  # Woodpecker runs this very pipeline: redeploying it would recreate the agent
+  # and kill the deploy. It is deployed by hand from the Komodo UI. Fail loudly
+  # (later steps are skipped) if someone creates a deploy:woodpecker deployment.
+  refuse-woodpecker:
+    image: alpine:3@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+    when:
+      - evaluate: 'CI_PIPELINE_DEPLOY_TASK == "deploy:woodpecker"'
+    commands:
+      - echo "Refusing to deploy woodpecker from its own pipeline; deploy it from the Komodo UI" >&2
+      - exit 1
+
   deploy:
     image: alpine:3@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
     environment:
