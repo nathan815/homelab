@@ -213,12 +213,7 @@ branch = "main"
 run_directory = "stacks/simplifi-mcp"
 file_paths = ["docker-compose.yml"]
 pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
-# Secret variable (Settings -> Variables): generate with `openssl rand -hex 32`.
-# SIMPLIFI_MCP_ALLOWED_EMAIL: your Quicken email, so only you can sign in.
-# SIMPLIFI_MCP_TS_HOSTNAME: neutral, random Funnel node name (not descriptive, kept out of git).
-# SIMPLIFI_MCP_PUBLIC_BASE_URL: the Funnel URL, https://<hostname>.<tailnet>.ts.net (kept out of git).
-# SIMPLIFI_MCP_TS_AUTHKEY: Tailscale auth key (tagged, e.g. tag:server) for the Funnel
-# sidecar; the tailnet policy must grant that tag nodeAttrs "funnel".
+# Variables: generate with komodo/scripts/simplifi-mcp-secrets.sh
 environment = """
 SIMPLIFI_MCP_PORT = 8787
 OAUTH_JWT_SECRET = [[SIMPLIFI_MCP_OAUTH_JWT_SECRET]]
