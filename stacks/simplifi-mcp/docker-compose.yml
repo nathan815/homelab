@@ -21,8 +21,8 @@ services:
       OAUTH_JWT_SECRET: ${OAUTH_JWT_SECRET?set OAUTH_JWT_SECRET}
       ALLOWED_EMAIL: ${ALLOWED_EMAIL:-}
       # The published image is older than the app's defaults and lacks Claude's
-      # /auth_callback URL. Setting the list replaces defaults, so loopback
-      # (Claude Code, MCP inspector) is listed explicitly.
+      # /auth_callback URL. Setting the list replaces the defaults, so loopback
+      # clients (Claude Code, MCP inspector) are no longer allowed.
       OAUTH_ALLOWED_REDIRECT_URIS: https://claude.ai/api/mcp/auth_callback,https://claude.ai/api/mcp/auth/callback,claude://claude.ai/mcp-auth-callback/sdk
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     volumes:
