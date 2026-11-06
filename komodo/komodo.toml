@@ -269,7 +269,7 @@ file_paths = ["docker-compose.yml"]
 # MANUAL DEPLOY ONLY. Woodpecker's own pipeline runs the CI deploys, so a CI
 # redeploy would recreate the agent mid-run and kill the deploy that started it.
 # Hence no poll_for_updates, and .github/scripts/deploy_plan.py (MANUAL_ONLY)
-# and ci/komodo-deploy.sh both refuse it. Deploy it from the Komodo UI when no
+# and the refuse-woodpecker step in .woodpecker/deploy.yaml both refuse it. Deploy it from the Komodo UI when no
 # pipeline is running (komodo/README.md, "Woodpecker").
 # State is in named volumes (woodpecker-server-data, woodpecker-agent-config),
 # not bind mounts, so there is no pre_deploy file backup (backup-stack.sh covers
