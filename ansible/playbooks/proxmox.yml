@@ -1,0 +1,6 @@
+- hosts: proxmox
+  become: true
+  roles:
+    # Don't tag this role. Role tags are inherited by every task, so `--tags <role tag>` would
+    # also run the opt-in `never`-tagged igpu-vm tasks (attaching the iGPU to the VM).
+    - role: proxmox

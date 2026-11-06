@@ -1,0 +1,59 @@
+---
+# Proxmox host prerequisites for passing the Intel iGPU (Quick Sync) through to a VM.
+# This role never reboots the host. After it changes anything, reboot when it is safe to stop
+# the VMs, then run with `--tags igpu-vm` to attach the iGPU.
+#
+# Console recovery: the iGPU is handed to the VM when the VM starts, so the host console
+# works until then. To get it back, at the GRUB menu press `e` on the boot entry and append
+# `systemd.mask=pve-guests.service` (stops VMs autostarting) or `intel_iommu=off`.
+
+- name: Enable IOMMU on the kernel command line
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet {{ proxmox_iommu_cmdline }}"'
+    backup: true
+  notify: Update grub
+  register: proxmox_cmdline
+  tags: [iommu]
+
+- name: Load VFIO modules at boot
+  ansible.builtin.lineinfile:
+    path: /etc/modules
+    line: "{{ item }}"
+  loop: "{{ proxmox_vfio_modules }}"
+  notify: Update initramfs
+  register: proxmox_modules
+  tags: [iommu]
+
+- name: Apply grub and initramfs changes now
+  ansible.builtin.meta: flush_handlers
+  tags: [iommu]
+
+- name: Report whether a reboot is needed
+  ansible.builtin.debug:
+    msg: >-
+      {{ 'Reboot required (not done by this role): IOMMU/VFIO config changed.'
+      if (proxmox_cmdline.changed or proxmox_modules.changed)
+      else 'No boot config changes.' }}
+  tags: [iommu]
+
+# Opt-in: `--tags igpu-vm`. Run only after the host rebooted with IOMMU on.
+- name: Check the host booted with IOMMU enabled
+  ansible.builtin.shell: |
+    grep -q "intel_iommu=on" /proc/cmdline && [ -d /sys/kernel/iommu_groups/0 ]
+  changed_when: false
+  tags: [never, igpu-vm]
+
+- name: Read the VM config
+  ansible.builtin.command: "qm config {{ proxmox_igpu_vmid }}"
+  register: proxmox_vm_config
+  changed_when: false
+  tags: [never, igpu-vm]
+
+- name: Attach the iGPU to the VM (takes effect on the next VM start)
+  ansible.builtin.command: >-
+    qm set {{ proxmox_igpu_vmid }} --hostpci0 {{ proxmox_igpu_pci_id }}
+  when: "'hostpci0' not in proxmox_vm_config.stdout"
+  changed_when: true
+  tags: [never, igpu-vm]

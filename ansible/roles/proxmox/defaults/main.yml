@@ -1,0 +1,13 @@
+---
+# Intel iGPU passthrough prerequisites (issue #66).
+proxmox_iommu_cmdline: "intel_iommu=on iommu=pt"
+
+proxmox_vfio_modules:
+  - vfio
+  - vfio_iommu_type1
+  - vfio_pci
+
+# VM that receives the iGPU. Only used by the `igpu-vm` tag, which never runs by default:
+# attaching the device before the host booted with IOMMU on makes the VM fail to start.
+proxmox_igpu_vmid: 102
+proxmox_igpu_pci_id: "0000:00:02.0"
