@@ -204,6 +204,28 @@ pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
 ##
 
 [[stack]]
+name = "simplifi-mcp"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/simplifi-mcp"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+# Variables: generate with komodo/scripts/simplifi-mcp-secrets.sh
+environment = """
+SIMPLIFI_MCP_PORT = 8787
+OAUTH_JWT_SECRET = [[SIMPLIFI_MCP_OAUTH_JWT_SECRET]]
+ALLOWED_EMAIL = [[SIMPLIFI_MCP_ALLOWED_EMAIL]]
+PUBLIC_BASE_URL = [[SIMPLIFI_MCP_PUBLIC_BASE_URL]]
+TS_AUTHKEY = [[SIMPLIFI_MCP_TS_AUTHKEY]]
+TS_HOSTNAME = [[SIMPLIFI_MCP_TS_HOSTNAME]]
+"""
+
+##
+
+[[stack]]
 name = "upsnap"
 [stack.config]
 server = "pi01"
