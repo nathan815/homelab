@@ -1,0 +1,77 @@
+# Used as:  docker compose -p hermesproxy -f ../egress-proxy/docker-compose.yml -f docker-compose.override.yml up -d
+# (the base file is NOT modified; its stock `sandbox` service is parked behind a profile)
+name: hermesproxy
+services:
+  proxy:
+    container_name: hermesproxy-proxy
+    command: >
+      mitmdump --listen-host 0.0.0.0 --listen-port 8080
+      --set connection_strategy=lazy --set ssl_insecure=true
+      -s /wrap/wrapper.py
+    environment:
+      APPROVAL_BIND: 172.30.99.2
+      MOCK_HOSTS: llm.mock.test,firecrawl.mock.test,search.mock.test
+      SWAP_HOST: llm.mock.test
+      SWAP_PLACEHOLDER: PLACEHOLDER_KEY
+    ports: !override
+      - "127.0.0.1:8091:8081"
+    volumes:
+      - ${HP}/wrapper:/wrap:ro
+      - ${HP}/certs/real_key:/run/secrets/real_key:ro
+    networks: !override
+      sandbox_net: {}
+      egress: {gw_priority: 100}
+      control: {ipv4_address: 172.30.99.2}
+
+  sandbox:
+    profiles: [off]
+
+  mockllm:
+    container_name: hermesproxy-mockllm
+    image: python:3.12-slim@sha256:6b25cbe6577518889d553cdd5a5da97d259348d8f6e45b527dd731caaba27a07
+    command: python /mock/mock_llm.py
+    volumes:
+      - ${HP}/mock:/mock:ro
+      - ${HP}/certs/mock.crt:/certs/mock.crt:ro
+      - ${HP}/certs/mock.key:/certs/mock.key:ro
+      - mocklogs:/logs
+    networks:
+      egress:
+        aliases: [llm.mock.test, firecrawl.mock.test, search.mock.test]
+
+  hermes:
+    container_name: hermesproxy-hermes
+    image: nousresearch/hermes-agent:v0.22.5@sha256:9c5561579f3ffdf333401797094ac3a743738d6c25d40f4331c7bf77b694238d
+    depends_on: [proxy]
+    entrypoint: ["/hermes-entry/entry.sh"]
+    command: ["sleep", "infinity"]
+    environment:
+      INSTALL_SYSTEM_CA: ${INSTALL_SYSTEM_CA:-1}
+      HTTP_PROXY: http://proxy:8080
+      HTTPS_PROXY: http://proxy:8080
+      http_proxy: http://proxy:8080
+      https_proxy: http://proxy:8080
+      NO_PROXY: localhost,127.0.0.1
+      no_proxy: localhost,127.0.0.1
+      SSL_CERT_FILE: ${H_SSL_CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}
+      REQUESTS_CA_BUNDLE: ${H_REQUESTS_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}
+      NODE_EXTRA_CA_CERTS: /ca-public/mitmproxy-ca-cert.pem
+      NODE_USE_ENV_PROXY: "1"
+      AGENT_BROWSER_EXECUTABLE_PATH: /opt/hermes/.playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell
+    volumes:
+      - ${HP}/hermes:/hermes-entry:ro
+      - ca-public:/ca-public:ro
+      - hermes-data:/opt/data
+    networks:
+      - sandbox_net
+
+  # logs volume reader helper is not needed; use `docker exec hermesproxy-mockllm cat /logs/received.jsonl`
+
+networks:
+  control: !override
+    ipam:
+      config: [{subnet: 172.30.99.0/24}]
+
+volumes:
+  mocklogs:
+  hermes-data:

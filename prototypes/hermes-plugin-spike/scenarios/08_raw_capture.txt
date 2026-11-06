@@ -1,0 +1,6 @@
+send hi
+wait-done 60
+send run TOOL
+wait-done 60
+send DANGER raw
+wait-done 60

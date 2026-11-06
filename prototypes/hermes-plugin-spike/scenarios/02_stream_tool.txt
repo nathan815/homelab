@@ -1,0 +1,6 @@
+sleep 30
+# delta streaming, then a tool call (echo hi)
+send stream please
+wait-done 60
+send please run TOOL
+wait-done 60
