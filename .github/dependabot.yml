@@ -18,8 +18,10 @@ updates:
       - dependency-name: "registry"
         update-types: ["version-update:semver-major"]
       # 5.x: one-way config/fastresume migration, WebAPI pause/resume renamed to stop/start.
+      # Minors too: 4.6.7 is the last 4.x image (built 2024-09-29, no rebuilds since),
+      # so a 4.6 bump only moves to an unpatched dead end. Go 4.5.2 -> 5.x in one planned step.
       - dependency-name: "linuxserver/qbittorrent"
-        update-types: ["version-update:semver-major"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       # 5.x: device cron expressions must be rewritten to the new format.
       - dependency-name: "seriousm4x/upsnap"
         update-types: ["version-update:semver-major"]
