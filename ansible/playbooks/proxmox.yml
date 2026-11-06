@@ -1,0 +1,5 @@
+- hosts: proxmox
+  become: true
+  roles:
+    # No role-level tags: they would be inherited by the `never`-tagged igpu-vm tasks.
+    - role: proxmox

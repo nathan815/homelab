@@ -15,6 +15,9 @@ services:
     volumes:
       - "${APPDATA_DIR:-/opt/appdata}/media-system/plex:/config"
       - /media/plexmedia01:/Media:ro
+    # Intel Quick Sync hardware transcoding (needs the iGPU passed through to this VM, #66)
+    devices:
+      - /dev/dri:/dev/dri
     tmpfs:
       - /transcode:size=1G
     healthcheck:
