@@ -6,7 +6,7 @@ Komodo v2 (Core 2.3.4) manages the stacks declared in `komodo.toml`. Compose fil
 |---|---|---|
 | Core + FerretDB v2 + Postgres/DocumentDB | `stacks/komodo`, pi01, port 9120 (`http://komodo.lan.nathancj.com`) | Ansible `core-services.yml --tags komodo` (never Komodo itself) |
 | Periphery agent | `stacks/komodo-periphery`, every host in the `komodo-servers` inventory group (pi01, docker.lan) | Ansible `base.yml --tags komodo-periphery` (never Komodo itself) |
-| Woodpecker CI | `stacks/woodpecker`, pi01 | Ansible `core-services.yml --tags woodpecker` (never Komodo: its pipeline performs the deploys, so redeploying it kills the deploy that triggered it) |
+| Woodpecker CI | `stacks/woodpecker`, pi01 | Komodo git stack `woodpecker`, **manual deploy only** from the UI (CI never deploys it: its own pipeline performs the deploys, so a CI redeploy would kill the deploy that triggered it; see "Woodpecker" below) |
 | Servers, stacks, procedures | `komodo/komodo.toml` | the `homelab` resource sync |
 | The sync itself | `komodo/bootstrap.toml` (record only) | created once by hand in the UI |
 
@@ -106,8 +106,17 @@ Afterwards: Dockge can be retired (#6 note) once nothing needs its UI. Remove it
 7. Optional: add a GitHub webhook to `/listener/github/sync/homelab/sync` so toml edits apply on push.
 8. **New host**: add it to `komodo-servers` in `ansible/inventory.yml` with `komodo_server_name`, add a `[[server]]` block, and run `base.yml --limit <host> --tags komodo-periphery -e komodo_onboarding_key=...`.
 
+## Woodpecker (manual deploy only)
+Woodpecker runs `.woodpecker/deploy.yaml`, which calls Komodo `DeployStack`. If that call redeployed Woodpecker, compose would recreate `woodpecker-agent` while its own step is running and the deploy would die half way. So the `woodpecker` stack is git-backed but never deployed by CI:
+- `deploy_plan.py` (`MANUAL_ONLY`) leaves it out of `changed`/`stack`/`list`, so a push or workflow run never creates a `deploy:woodpecker` deployment, and `ci/komodo-deploy.sh` refuses the task as a second guard.
+- No `poll_for_updates`, so Komodo does not redeploy it either. Merging a change (image bump, compose edit) deploys nothing.
+- To roll out a change: wait until Woodpecker shows no running pipelines, then Komodo UI -> Stacks -> `woodpecker` -> Deploy. Running pipelines are lost when the agent restarts. The UI session survives because the deploy runs in Komodo, not in Woodpecker.
+- If a bad deploy leaves Woodpecker down, CI cannot repair it (it is the CI). Fix it from the Komodo UI, or `docker compose` on pi01 in `/opt/komodo/stacks/woodpecker/stacks/woodpecker`. Rollback: revert the commit, then Deploy again.
+- State is in named volumes `woodpecker_woodpecker-server-data` (SQLite DB) and `woodpecker_woodpecker-agent-config`, which survive the move because the compose project name stays `woodpecker`. Before a major image bump, snapshot the server volume: `docker run --rm -v woodpecker_woodpecker-server-data:/d -v /opt/appdata/backups:/b alpine tar czf /b/woodpecker-$(date +%F).tgz -C /d .`
+- Secrets are Komodo variables `WOODPECKER_GITHUB_CLIENT`, `WOODPECKER_GITHUB_SECRET`, `WOODPECKER_AGENT_SECRET`, `WOODPECKER_GRPC_SECRET` (copy the current values from `/opt/stacks/woodpecker/.env` on pi01; they must be unchanged or agent registration and sessions break).
+
 ## Migrating a stack (Ansible -> Komodo git mode)
-Komodo clones git-backed stacks into `/opt/komodo/stacks/<stack>`, separate from Ansible's `/opt/stacks/<stack>`, so the two copies no longer collide. A relative `./data` mount would still follow the stack into the clone, though, and start empty there. Runtime data now lives in `/opt/appdata/<stack>` (#9); only `adguardhome` and octoprint's `dockge` still have to be moved. `lanindex` has no volumes and is safe. Per stack:
+Komodo clones git-backed stacks into `/opt/komodo/stacks/<stack>`, separate from Ansible's `/opt/stacks/<stack>`, so the two copies no longer collide. A relative `./data` mount would still follow the stack into the clone, though, and start empty there. Runtime data now lives in `/opt/appdata/<stack>` (#9); only `adguardhome` and octoprint's `dockge` still have to be moved (Woodpecker uses named volumes, so nothing to move). `lanindex` has no volumes and is safe. Per stack:
 0. Check the stack's compose file for relative `./data` mounts. If it has any, change them to `${APPDATA_DIR:-/opt/appdata}/<stack>/...` and move the data on the host first, following `docs/appdata-migration.md` (#9): `stacks/migrate-appdata.sh <stack>` on the host copies `./data/` to `/opt/appdata/<stack>/`, verifies it and keeps `./data.pre-appdata` as the rollback copy. Then deploy with Ansible `--tags <stack>` and verify. Do the data move and that deploy together. Ansible's `deploy-stack` refuses to deploy a stack that mounts `APPDATA_DIR` while `/opt/stacks/<stack>/data` still exists, because it would start on empty data.
 1. Replace its `files_on_host` block with a git-backed `[[stack]]` block (`repo`, `run_directory = "stacks/<name>"`), and remove the stack from `ansible/playbooks/*.yml`, in one PR. Sync after merge.
 2. Deploy from Komodo. Same project name, so the containers are recreated from `/opt/komodo/stacks/<name>`. Confirm.

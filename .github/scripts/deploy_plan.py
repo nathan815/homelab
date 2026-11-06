@@ -6,6 +6,7 @@ set) with `run_directory = "stacks/<folder>"` and is named `<folder>` or, for a
 folder deployed to several Komodo servers (one stack per server),
 `<folder>_<server>`. Changing stacks/<folder>/ or apps/<folder>/ deploys every
 such stack, and the deploy:<stack> task uses the Komodo stack name.
+Stacks in MANUAL_ONLY (woodpecker) are skipped too.
 Stacks Ansible copies to the host (files_on_host) are never deployed from here.
 Names must match [a-z0-9_-]+ and folders [a-z0-9-]+ (what ci/komodo-deploy.sh
 accepts); a git-backed stack that doesn't is an error, so validate.yml fails
@@ -25,6 +26,12 @@ import sys
 import tomllib
 
 
+# Git-backed stacks CI must never deploy: Woodpecker runs the deploy pipeline,
+# so redeploying it from that pipeline would kill the deploy that triggered it.
+# Deploy these by hand from the Komodo UI (komodo/README.md).
+MANUAL_ONLY = {"woodpecker"}
+
+
 def deployable():
     """Map each CI-deployable Komodo stack name to its stacks/ folder."""
     with open("komodo/komodo.toml", "rb") as f:
@@ -35,6 +42,8 @@ def deployable():
         if not cfg.get("repo"):
             continue
         name = s["name"]
+        if name in MANUAL_ONLY:
+            continue
         if not re.fullmatch(r"[a-z0-9_-]+", name):
             sys.exit(f"::error::git-backed stack {name!r}: name must match "
                      "[a-z0-9_-]+ (ci/komodo-deploy.sh rejects anything else)")

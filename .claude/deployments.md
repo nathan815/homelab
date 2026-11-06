@@ -154,13 +154,9 @@ docker-compose -f myservice/docker-compose.yml up -d
 - Clients configured in Mikrotik RouterOS
 
 ### Woodpecker CI
-- Stack at `stacks/woodpecker`, runs on pi01, deployed via `deploy-stack` role (`core-services.yml`, tag `woodpecker`):
-  ```bash
-  cd ansible/
-  ./ansible_playbook.sh core-services.yml --tags woodpecker
-  ```
+- Stack at `stacks/woodpecker`, runs on pi01, a git-backed Komodo stack (`woodpecker` in `komodo/komodo.toml`). **Manual deploy only**: Komodo UI -> Stacks -> woodpecker -> Deploy, when no pipeline is running. CI never deploys it because its own pipeline performs the deploys (see `komodo/README.md`, "Woodpecker").
 - Exposed at `https://woodpecker.lan.nathancj.com` (proxied to `pi01.lan:8001` — **not** 8000, since nginx-proxy's own `nginx-public` container already binds host port 8000 on pi01)
-- `.env` values needed (see `.env.defaults`): `WOODPECKER_HOST`, `WOODPECKER_GITHUB_CLIENT`/`WOODPECKER_GITHUB_SECRET` (from a GitHub OAuth App, not a GitHub App — callback URL `https://woodpecker.lan.nathancj.com/authorize`; "Enable Device Flow" is not needed), `WOODPECKER_AGENT_SECRET` (`openssl rand -hex 32`)
+- Settings are the stack's `environment` in `komodo.toml` (secrets are Komodo variables). Values (see `.env.defaults`): `WOODPECKER_HOST`, `WOODPECKER_GITHUB_CLIENT`/`WOODPECKER_GITHUB_SECRET` (from a GitHub OAuth App, not a GitHub App — callback URL `https://woodpecker.lan.nathancj.com/authorize`; "Enable Device Flow" is not needed), `WOODPECKER_AGENT_SECRET` (`openssl rand -hex 32`)
 - After deploying, authorize with GitHub in the UI, enable the `homelab-code` repo, and add `komodo_api_key` / `komodo_api_secret` repo secrets for the image pipelines (see `komodo/README.md`)
 
 ## Backup & Restore

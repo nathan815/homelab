@@ -26,6 +26,13 @@ case $stack in
     ;;
 esac
 
+# Woodpecker runs this very pipeline: redeploying it would recreate the agent
+# and kill the deploy. It is deployed by hand from the Komodo UI.
+if [ "$stack" = woodpecker ]; then
+  echo "Refusing to deploy woodpecker from its own pipeline; deploy it from the Komodo UI" >&2
+  exit 1
+fi
+
 resp=$(mktemp)
 trap 'rm -f "$resp"' EXIT
 
