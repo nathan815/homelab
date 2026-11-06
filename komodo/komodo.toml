@@ -98,9 +98,10 @@ TUNNEL_TOKEN = [[CLOUDFLARED_TUNNEL_TOKEN]]
 ##
 
 # cAdvisor + Dockge, one stack per Komodo server. Periphery moved out to
-# stacks/komodo-periphery, so redeploying this from Komodo is safe. CI does not
-# deploy these (the names differ from stacks/container-mgmt): deploy them from
-# the Komodo UI. octoprint, which is not a Komodo server, stays on Ansible.
+# stacks/komodo-periphery, so redeploying this from Komodo is safe. A folder
+# shared by several servers is one stack per server, named <folder>_<server>;
+# CI deploys all of them when stacks/<folder>/ changes (deploy_plan.py).
+# octoprint, which is not a Komodo server, stays on Ansible.
 # Komodo v2 stores ':' in names as '_', so use the stored form here or every
 # sync tries to create the stack again ("Resource ... already exists").
 [[stack]]

@@ -20,7 +20,7 @@ set -eu
 
 stack=${CI_PIPELINE_DEPLOY_TASK#deploy:}
 case $stack in
-  "" | *[!a-z0-9-]*)
+  "" | *[!a-z0-9_-]*)
     echo "Invalid deploy task '$CI_PIPELINE_DEPLOY_TASK' (want deploy:<stack>)" >&2
     exit 1
     ;;

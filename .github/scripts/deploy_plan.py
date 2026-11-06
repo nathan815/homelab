@@ -2,14 +2,18 @@
 """Decide which stacks .github/workflows/deploy.yml deploys.
 
 A stack is deployable when komodo/komodo.toml declares it git-backed (`repo`
-set) with `run_directory = "stacks/<name>"`, so the Komodo stack name, the
-stacks/ folder, the apps/ folder and the deploy:<name> task all agree.
+set) with `run_directory = "stacks/<folder>"` and is named `<folder>` or, for a
+folder deployed to several Komodo servers (one stack per server),
+`<folder>_<server>`. Changing stacks/<folder>/ or apps/<folder>/ deploys every
+such stack, and the deploy:<stack> task uses the Komodo stack name.
 Stacks Ansible copies to the host (files_on_host) are never deployed from here.
-Names must match [a-z0-9-]+ (what ci/komodo-deploy.sh accepts); a git-backed
-stack that doesn't is an error, so validate.yml fails before any deploy.
+Names must match [a-z0-9_-]+ and folders [a-z0-9-]+ (what ci/komodo-deploy.sh
+accepts); a git-backed stack that doesn't is an error, so validate.yml fails
+before any deploy.
 
   deploy_plan.py changed <base> <head>   stacks touched between two commits
-  deploy_plan.py stack <name>            just <name>, failing if not deployable
+  deploy_plan.py stack <name|folder>     that stack (or every stack of the
+                                         folder), failing if not deployable
   deploy_plan.py list                    every deployable stack
 
 Prints a JSON list of stack names.
@@ -22,23 +26,29 @@ import tomllib
 
 
 def deployable():
+    """Map each CI-deployable Komodo stack name to its stacks/ folder."""
     with open("komodo/komodo.toml", "rb") as f:
         stacks = tomllib.load(f).get("stack", [])
-    names = set()
+    folders = {}
     for s in stacks:
         cfg = s.get("config", {})
         if not cfg.get("repo"):
             continue
-        if cfg.get("run_directory") != f"stacks/{s['name']}":
-            print(f"::warning::git-backed stack {s['name']} has run_directory "
-                  f"{cfg.get('run_directory')!r}, expected 'stacks/{s['name']}'; "
-                  "not deployable by CI", file=sys.stderr)
+        name = s["name"]
+        if not re.fullmatch(r"[a-z0-9_-]+", name):
+            sys.exit(f"::error::git-backed stack {name!r}: name must match "
+                     "[a-z0-9_-]+ (ci/komodo-deploy.sh rejects anything else)")
+        run_dir = cfg.get("run_directory", "")
+        folder = run_dir.removeprefix("stacks/")
+        if (not run_dir.startswith("stacks/") or not re.fullmatch(r"[a-z0-9-]+", folder)
+                or not (name == folder or name.startswith(folder + "_"))):
+            print(f"::warning::git-backed stack {name} has run_directory "
+                  f"{run_dir!r}, expected 'stacks/{name}' (or 'stacks/<folder>' "
+                  "with the stack named '<folder>_<server>'); not deployable by CI",
+                  file=sys.stderr)
             continue
-        if not re.fullmatch(r"[a-z0-9-]+", s["name"]):
-            sys.exit(f"::error::git-backed stack {s['name']!r}: name must match "
-                     "[a-z0-9-]+ (ci/komodo-deploy.sh rejects anything else)")
-        names.add(s["name"])
-    return names
+        folders[name] = folder
+    return folders
 
 
 def changed(base, head):
@@ -58,20 +68,22 @@ def changed(base, head):
         parts = path.split("/")
         if len(parts) > 2 and parts[0] in ("stacks", "apps"):
             touched.add(parts[1])
-    for name in sorted(touched - ok):
-        print(f"skipping {name}: not a git-backed stack in komodo/komodo.toml",
+    for folder in sorted(touched - set(ok.values())):
+        print(f"skipping {folder}: not a git-backed stack in komodo/komodo.toml",
               file=sys.stderr)
-    return sorted(touched & ok)
+    return sorted(name for name, folder in ok.items() if folder in touched)
 
 
 def main(argv):
     if argv[:1] == ["changed"] and len(argv) == 3:
         result = changed(argv[1], argv[2])
     elif argv[:1] == ["stack"] and len(argv) == 2:
-        if argv[1] not in deployable():
+        ok = deployable()
+        result = ([argv[1]] if argv[1] in ok
+                  else sorted(n for n, f in ok.items() if f == argv[1]))
+        if not result:
             sys.exit(f"::error::{argv[1]!r} is not a git-backed stack in "
-                     "komodo/komodo.toml (run_directory = \"stacks/<name>\")")
-        result = [argv[1]]
+                     "komodo/komodo.toml (run_directory = \"stacks/<folder>\")")
     elif argv == ["list"]:
         result = sorted(deployable())
     else:
