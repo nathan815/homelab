@@ -108,7 +108,7 @@ Afterwards: Dockge can be retired (#6 note) once nothing needs its UI. Remove it
 
 ## Woodpecker (manual deploy only)
 Woodpecker runs `.woodpecker/deploy.yaml`, which calls Komodo `DeployStack`. If that call redeployed Woodpecker, compose would recreate `woodpecker-agent` while its own step is running and the deploy would die half way. So the `woodpecker` stack is git-backed but never deployed by CI:
-- `deploy_plan.py` (`MANUAL_ONLY`) leaves it out of `changed`/`stack`/`list`, so a push or workflow run never creates a `deploy:woodpecker` deployment, and `ci/komodo-deploy.sh` refuses the task as a second guard.
+- `deploy_plan.py` (`MANUAL_ONLY`) leaves it out of `changed`/`stack`/`list`, so a push or workflow run never creates a `deploy:woodpecker` deployment, and the `refuse-woodpecker` step in `.woodpecker/deploy.yaml` fails a manually created `deploy:woodpecker` deployment explicitly (rather than skipping it) as a second guard.
 - No `poll_for_updates`, so Komodo does not redeploy it either. Merging a change (image bump, compose edit) deploys nothing.
 - To roll out a change: wait until Woodpecker shows no running pipelines, then Komodo UI -> Stacks -> `woodpecker` -> Deploy. Running pipelines are lost when the agent restarts. The UI session survives because the deploy runs in Komodo, not in Woodpecker.
 - If a bad deploy leaves Woodpecker down, CI cannot repair it (it is the CI). Fix it from the Komodo UI, or `docker compose` on pi01 in `/opt/komodo/stacks/woodpecker/stacks/woodpecker`. Rollback: revert the commit, then Deploy again.
