@@ -202,7 +202,7 @@ branch = "main"
 run_directory = "stacks/tailscale"
 file_paths = ["docker-compose.yml"]
 environment = """
-TS_HOSTNAME = homelab
+TS_HOSTNAME = homenet
 TS_AUTHKEY = [[TAILSCALE_AUTHKEY]]
 TS_ROUTES = 192.168.0.0/24
 """
