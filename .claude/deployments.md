@@ -75,10 +75,6 @@ Run from `ansible/` directory. Assumes an Ansible docker container is built; use
 - **When**: Setting up media ecosystem
 - **Warning**: Large disk space required; see media-system README
 
-### `dns.yml`
-- **What**: AdGuardHome configuration
-- **When**: First deployment or config changes
-
 ### `zigbee.yml`
 - **What**: Zigbee2MQTT setup
 - **When**: Initial octoprint.lan setup

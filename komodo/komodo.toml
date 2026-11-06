@@ -61,9 +61,11 @@ name = "adguardhome"
 [stack.config]
 server = "pi01"
 poll_for_updates = true
-files_on_host = true
-run_directory = "/opt/stacks/adguardhome"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/adguardhome"
 file_paths = ["docker-compose.yml"]
+pre_deploy.command = "BACKUP_KEEP=2 BACKUP_DATA_ROOTS=/opt/appdata/adguardhome/config sh ../../komodo/scripts/backup-stack.sh backup"
 
 ##
 

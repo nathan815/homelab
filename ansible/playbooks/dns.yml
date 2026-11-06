@@ -1,7 +1,0 @@
-# AdGuardHome is my home network DNS server. All devices on the network use it for DNS resolution.
-- hosts: pi01
-  roles:
-    - role: deploy-stack
-      vars:
-        stack_name: adguardhome
-      tags: adguardhome
