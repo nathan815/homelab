@@ -50,10 +50,6 @@
         pip_install_packages:
           - name: docker
 
-    # needed for octoprint octopi os
-    # - role: docker
-    #   tags: [docker]
-
     - role: geerlingguy.docker
       tags: [docker]
       vars:
