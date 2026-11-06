@@ -29,14 +29,14 @@ def deployable():
         cfg = s.get("config", {})
         if not cfg.get("repo"):
             continue
-        if not re.fullmatch(r"[a-z0-9-]+", s["name"]):
-            sys.exit(f"::error::git-backed stack {s['name']!r}: name must match "
-                     "[a-z0-9-]+ (ci/komodo-deploy.sh rejects anything else)")
         if cfg.get("run_directory") != f"stacks/{s['name']}":
             print(f"::warning::git-backed stack {s['name']} has run_directory "
                   f"{cfg.get('run_directory')!r}, expected 'stacks/{s['name']}'; "
                   "not deployable by CI", file=sys.stderr)
             continue
+        if not re.fullmatch(r"[a-z0-9-]+", s["name"]):
+            sys.exit(f"::error::git-backed stack {s['name']!r}: name must match "
+                     "[a-z0-9-]+ (ci/komodo-deploy.sh rejects anything else)")
         names.add(s["name"])
     return names
 

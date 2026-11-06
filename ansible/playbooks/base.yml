@@ -72,9 +72,11 @@
     - role: docker-requires-mounts
       tags: [docker, docker-mounts]
 
+    # Komodo deploys this on its servers (komodo/komodo.toml); octoprint is not one.
     - role: deploy-stack
       vars:
         stack_name: container-mgmt
+      when: inventory_hostname not in groups['komodo-servers']
       tags: container-mgmt
 
 # Komodo v2 Periphery (outbound to Core on pi01). Pass the one-time onboarding

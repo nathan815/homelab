@@ -7,7 +7,7 @@ services:
     container_name: cadvisor
     restart: always
     ports:
-        - ${CADVISOR_PORT}:8080
+        - ${CADVISOR_PORT:-9200}:8080
     volumes:
         - /:/rootfs:ro
         - /var/run:/var/run:rw
@@ -23,8 +23,10 @@ services:
     image: louislam/dockge:1@sha256:335c6368b880ecc203236ed89e6e5232e0d6578e8ef5920e4a502390451502bf
     container_name: dockge
     restart: always
+    labels:
+      homelab.backup: "true"
     ports:
-      - ${DOCKGE_PORT}:5001
+      - ${DOCKGE_PORT:-5555}:5001
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${APPDATA_DIR:-/opt/appdata}/container-mgmt/dockge:/app/data
@@ -36,7 +38,7 @@ services:
       # ⚠️ READ IT CAREFULLY. If you did it wrong, your data could end up writing into a WRONG PATH.
       # ⚠️ 1. FULL path only. No relative path (MUST)
       # ⚠️ 2. Left Stacks Path === Right Stacks Path (MUST)
-      - ${DOCKGE_STACKS_DIR}:${DOCKGE_STACKS_DIR}
+      - ${DOCKGE_STACKS_DIR:-/opt/stacks}:${DOCKGE_STACKS_DIR:-/opt/stacks}
     environment:
       # Tell Dockge where is your stacks directory
-      - DOCKGE_STACKS_DIR=${DOCKGE_STACKS_DIR}
+      - DOCKGE_STACKS_DIR=${DOCKGE_STACKS_DIR:-/opt/stacks}
