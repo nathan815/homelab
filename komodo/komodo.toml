@@ -193,6 +193,23 @@ file_paths = ["docker-compose.yml"]
 ##
 
 [[stack]]
+name = "tailscale"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/tailscale"
+file_paths = ["docker-compose.yml"]
+environment = """
+TS_HOSTNAME = homelab
+TS_AUTHKEY = [[TAILSCALE_AUTHKEY]]
+TS_ROUTES = 192.168.0.0/24
+"""
+
+##
+
+[[stack]]
 name = "upsnap"
 [stack.config]
 server = "pi01"
