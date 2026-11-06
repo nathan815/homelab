@@ -138,6 +138,7 @@ PRs run `.github/workflows/validate.yml` only (GitHub-hosted, no secrets).
 1. `stacks/<name>/docker-compose.yml`, plus `apps/<name>/Dockerfile` if it's built here (image `ghcr.io/nathan815/<name>:${IMAGE_TAG:-latest}`). Third-party images need no `apps/` folder.
 2. A git-backed `[[stack]]` block in `komodo.toml` named `<name>` with `run_directory = "stacks/<name>"` (copy `lanindex`). For a built image add `IMAGE_TAG = [[<NAME>_IMAGE_TAG]]` to its `environment`.
 3. Sync, then push. If the stack existed under Ansible, follow "Migrating a stack" first.
+   A folder that runs on several servers is one Komodo stack per server named `<folder>_<server>` (`container-mgmt_pi01`), all with `run_directory = "stacks/<folder>"` and an explicit `project_name`; CI deploys every one of them when the folder changes.
 4. If it keeps data, opt in to pre-deploy backups (next section).
 
 ## Backups (pre-deploy, #41)
