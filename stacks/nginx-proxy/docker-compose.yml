@@ -33,6 +33,8 @@ services:
     image: certbot/dns-cloudflare:v5.8.0@sha256:c45edb002b883da1a1235abb205dff474a7a1a459d878e8d5fdc7f9d83073aea
     container_name: certbot-lan
     restart: always
+    labels:
+      homelab.backup: "true"
     volumes:
       - ${APPDATA_DIR:-/opt/appdata}/nginx-proxy/letsencrypt:/etc/letsencrypt
       - ${APPDATA_DIR:-/opt/appdata}/nginx-proxy/cloudflare.ini:/cloudflare.ini:ro

@@ -33,6 +33,9 @@ jobs:
             env_file=$(dirname "$f")/.env.defaults
             if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
           done
+      - name: nginx -t (nginx-proxy)
+        # Komodo deploys nginx-proxy straight from main, so a bad config would take the LAN's web access down
+        run: bash "$PWD/stacks/nginx-proxy/validate.sh"
       - name: promtool / blackbox config check (monitoring)
         run: |
           # --syntax-only: the HA token credentials_file only exists at runtime

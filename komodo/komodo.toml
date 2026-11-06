@@ -186,9 +186,11 @@ name = "nginx-proxy"
 [stack.config]
 server = "pi01"
 poll_for_updates = true
-files_on_host = true
-run_directory = "/opt/stacks/nginx-proxy"
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/nginx-proxy"
 file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
 
 ##
 
