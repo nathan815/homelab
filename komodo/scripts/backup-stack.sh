@@ -159,6 +159,10 @@ recreated_services() {
   # Compose's own plan. It reads manifests for images not pulled yet but
   # downloads nothing, and starts nothing.
   plan=$(docker compose -p "$project" up -d --dry-run --no-build 2>&1) || return 1
+  # An unrecognised output format must not read as "nothing changes".
+  if [ -n "$(project_containers)" ]; then
+    echo "$plan" | grep -Eq 'Container .* (Running|Recreate|Started)$' || return 1
+  fi
   for name in $(echo "$plan" | awk '$NF == "Recreate" && $(NF - 2) == "Container" { print $(NF - 1) }'); do
     changed="$changed $(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$name")"
   done
