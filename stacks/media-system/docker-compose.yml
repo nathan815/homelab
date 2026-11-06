@@ -1,7 +1,7 @@
 ---
 services:
   plex:
-    image: lscr.io/linuxserver/plex:1.43.5@sha256:01a53d9c7adcbb3701fbb0a4230c0a37c85453759b6b05a67356c3c7a09de08d
+    image: lscr.io/linuxserver/plex:1.43.5@sha256:0c2f1122a4275efeea953a9882359f3809b27279d3c3022392e8e610a2eccc67
     container_name: plex
     restart: always
     network_mode: host
@@ -211,7 +211,7 @@ services:
     container_name: qui
     labels:
       homelab.backup: "true"
-    image: ghcr.io/autobrr/qui:v1.33.1@sha256:c83ce0370ab372c931ccb3f0ddd0eb1bc850026ce9eafc13ce94443f6f2a2cd3
+    image: ghcr.io/autobrr/qui:v1.35.0@sha256:a5b2f5faf6388cce257137c88e4b189458fd799cf9119ed476c980e5a69341b2
     restart: always
     user: "1000:1000"
     depends_on:
