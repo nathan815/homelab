@@ -18,7 +18,7 @@ services:
       PORT: "8787"
       HOST: 0.0.0.0
       CACHE_DB_PATH: /app/data/cache.sqlite
-      OAUTH_JWT_SECRET: ${OAUTH_JWT_SECRET:?set OAUTH_JWT_SECRET}
+      OAUTH_JWT_SECRET: ${OAUTH_JWT_SECRET?set OAUTH_JWT_SECRET}
       ALLOWED_EMAIL: ${ALLOWED_EMAIL:-}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     volumes:
@@ -39,8 +39,8 @@ services:
     depends_on:
       - simplifi-mcp
     environment:
-      TS_AUTHKEY: ${TS_AUTHKEY:?set TS_AUTHKEY}
-      TS_HOSTNAME: ${TS_HOSTNAME:?set TS_HOSTNAME}
+      TS_AUTHKEY: ${TS_AUTHKEY?set TS_AUTHKEY}
+      TS_HOSTNAME: ${TS_HOSTNAME?set TS_HOSTNAME}
       TS_STATE_DIR: /var/lib/tailscale
       TS_SERVE_CONFIG: /config/serve.json
       TS_USERSPACE: "true"
