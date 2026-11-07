@@ -190,7 +190,7 @@ services:
     container_name: qbt
     labels:
       homelab.backup: "true"
-    image: linuxserver/qbittorrent:4.6.7@sha256:55f15d44396315551f87294a176efae733b16e283f38980308e46073950257c6
+    image: linuxserver/qbittorrent:5.3.0@sha256:05c1454f9a32967affc1f34f67f8cc0cc57dd805dca45489fe797095a6286556
     restart: always
     network_mode: "service:gluetun-vpn"
     depends_on:

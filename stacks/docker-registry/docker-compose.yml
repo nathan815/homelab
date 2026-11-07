@@ -19,7 +19,7 @@ services:
     container_name: registry-ui
 
   registry-server:
-    image: registry:2.8.3@sha256:a3d8aaa63ed8681a604f1dea0aa03f100d5895b6a58ace528858a7b332415373
+    image: registry:3.1.1@sha256:325b4b29b041e82803abeb703e201655e4e23ab83264ec1a7c9ddb0a5b14a6e0
     restart: always
     labels:
       homelab.backup: "true"
