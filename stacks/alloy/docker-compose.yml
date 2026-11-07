@@ -1,0 +1,31 @@
+# Grafana Alloy: ships this host's Docker container logs and journal to Loki
+# (stacks/loki). One copy per Docker host: Komodo stacks alloy-pi01 and
+# alloy-docker-main (komodo/komodo.toml), Ansible on octoprint (base.yml).
+#
+# Reads the Docker socket and /var/log/journal read-only. Positions live in a
+# named volume so a restart doesn't re-send or skip lines.
+services:
+  alloy:
+    image: grafana/alloy:v1.11.3@sha256:8c7256f412feb9f5f48f9f6f9394dc97ca887f63dea9304f347970ecc1787669
+    container_name: alloy
+    restart: always
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=127.0.0.1:12345
+      - /etc/alloy/config.alloy
+    environment:
+      ALLOY_HOST: ${ALLOY_HOST?set ALLOY_HOST}
+      LOKI_URL: ${LOKI_URL:-http://docker.lan:3100/loki/api/v1/push}
+    # Host network: the UI/health port stays on loopback, and pi01.lan resolves like on the host
+    network_mode: host
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/journal:/var/log/journal:ro
+      - /run/log/journal:/run/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - alloy_data:/var/lib/alloy/data
+
+volumes:
+  alloy_data:

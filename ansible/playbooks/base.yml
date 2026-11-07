@@ -43,6 +43,27 @@
         mode: "0755"
       tags: dirs
 
+    # deploy-stack copies stacks/alloy over this; the .env stays
+    - name: Create alloy stack folder
+      ansible.builtin.file:
+        path: /opt/stacks/alloy
+        state: directory
+        owner: "{{ ansible_ssh_user }}"
+        group: "{{ ansible_ssh_user }}"
+      when: inventory_hostname not in groups['komodo-servers']
+      tags: alloy
+
+    - name: Set host label in alloy .env
+      ansible.builtin.lineinfile:
+        path: /opt/stacks/alloy/.env
+        regexp: "^ALLOY_HOST="
+        line: "ALLOY_HOST={{ inventory_hostname }}"
+        create: true
+        mode: "0644"
+        owner: "{{ ansible_ssh_user }}"
+      when: inventory_hostname not in groups['komodo-servers']
+      tags: alloy
+
   roles:
     - role: geerlingguy.pip
       tags: [pip]
@@ -74,6 +95,14 @@
         stack_name: container-mgmt
       when: inventory_hostname not in groups['komodo-servers']
       tags: container-mgmt
+
+    # Log shipper (stacks/alloy -> Loki on pi01). Komodo runs it on its servers
+    # (alloy-pi01, alloy-docker-main); octoprint is not one.
+    - role: deploy-stack
+      vars:
+        stack_name: alloy
+      when: inventory_hostname not in groups['komodo-servers']
+      tags: alloy
 
 # Komodo v2 Periphery (outbound to Core on pi01). Pass the one-time onboarding
 # key on the first run per host: -e komodo_onboarding_key=O-... (komodo/README.md).

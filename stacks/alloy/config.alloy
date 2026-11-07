@@ -1,0 +1,86 @@
+// Ships Docker container logs and the host journal to Loki (stacks/loki).
+// ALLOY_HOST labels every line with the Docker host it came from.
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+    target_label  = "stack"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output
+  labels     = { host = sys.env("ALLOY_HOST"), source = "docker" }
+  forward_to = [loki.process.redact.receiver]
+}
+
+loki.source.journal "host" {
+  path          = "/var/log/journal"
+  max_age       = "12h"
+  labels        = { host = sys.env("ALLOY_HOST"), source = "journal" }
+  relabel_rules = loki.relabel.journal.rules
+  forward_to    = [loki.process.redact.receiver]
+}
+
+loki.relabel "journal" {
+  forward_to = []
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+  // Drop info (6) and debug (7) journal entries; keep warning and above
+  rule {
+    source_labels = ["__journal_priority"]
+    regex         = "[67]"
+    action        = "drop"
+  }
+}
+
+// Secrets must not reach the store. Backstop: nginx-public already strips
+// access_token from its own access log.
+loki.process "redact" {
+  stage.replace {
+    expression = "(?i)access_token=([^&\\s\"]+)"
+    replace    = "REDACTED"
+  }
+  stage.replace {
+    expression = "(?i)authorization:\\s*(?:bearer|basic)\\s+(\\S+)"
+    replace    = "REDACTED"
+  }
+  forward_to = [loki.process.filter.receiver]
+}
+
+// Volume control (Loki disk use): drop lines with no incident-review value.
+loki.process "filter" {
+  // Loki/Alloy/Prometheus talking about themselves, and healthchecks
+  stage.drop {
+    expression = "(?i)GET /(-/healthy|ready|metrics|healthz|api/health)"
+  }
+  stage.match {
+    selector = "{container=~\"loki|alloy|prometheus\"}"
+    action   = "drop"
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+  }
+}

@@ -57,6 +57,53 @@ IMAGE_TAG = [[LANINDEX_IMAGE_TAG]]
 ##
 
 [[stack]]
+name = "loki"
+tags = ["core"]
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/loki"
+file_paths = ["docker-compose.yml"]
+# No pre_deploy backup: the data is on /mnt/disk2, which backup-stack.sh never includes.
+environment = """
+LOKI_PORT = 3100
+"""
+
+##
+
+[[stack]]
+name = "alloy-pi01"
+[stack.config]
+server = "pi01"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/alloy"
+file_paths = ["docker-compose.yml"]
+environment = """
+ALLOY_HOST = pi01
+"""
+
+##
+
+[[stack]]
+name = "alloy-docker-main"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/alloy"
+file_paths = ["docker-compose.yml"]
+environment = """
+ALLOY_HOST = docker-main
+"""
+
+##
+
+[[stack]]
 name = "adguardhome"
 [stack.config]
 server = "pi01"
