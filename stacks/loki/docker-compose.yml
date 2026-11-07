@@ -1,0 +1,26 @@
+# Central log store. Alloy on each Docker host (stacks/alloy) pushes to :3100;
+# Grafana (stacks/monitoring on pi01) reads it via its Loki datasource.
+#
+# Lives on docker.lan, not pi01: pi01's disks are small and flash-based, and logs
+# are most useful when they survive a pi01 failure. Data is on the 3.6T HDD
+# /mnt/disk2 (outside the Komodo clone, so redeploys keep it). Docker only starts
+# after /mnt/disk2 is mounted (ansible docker-requires-mounts).
+# Retention and rate limits: loki.yml. Create the data dir first:
+#   sudo mkdir -p /mnt/disk2/monitoring-data/loki
+services:
+  loki:
+    image: grafana/loki:3.5.5@sha256:31628519045e7f28692a7ae73b4a3fd293dccb425585ed5d16ceea3b5c9592e6
+    container_name: loki
+    # Runs as root so it can write the bind-mounted data dir
+    user: root
+    command: ["-config.file=/etc/loki/loki.yml"]
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    restart: always
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml:ro
+      - /mnt/disk2/monitoring-data/loki:/loki
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider "http://localhost:3100/ready" || exit 1
+      interval: 30s
+      start_period: 30s
