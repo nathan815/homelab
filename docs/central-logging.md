@@ -5,7 +5,7 @@ Container and journal logs from every Docker host are shipped to Loki on pi01 an
 | Piece | Where | Notes |
 |---|---|---|
 | Loki | `stacks/loki` on docker.lan (Komodo server `docker-main`) | Port 3100, config `stacks/loki/loki.yml` |
-| Alloy | `stacks/alloy`, one per host | Komodo stacks `alloy-pi01`, `alloy-docker-main`; Ansible (`base.yml`, tag `alloy`) on octoprint |
+| Alloy | `stacks/alloy`, one per host | Komodo stacks `alloy_pi01`, `alloy_docker-main`; Ansible (`base.yml`, tag `alloy`) on octoprint |
 | Grafana | existing on pi01, `Loki` datasource provisioned | `stacks/monitoring/grafana/datasource.yml` |
 
 ## Storage and retention
@@ -26,7 +26,7 @@ Example: public proxy access logs, last 24h: `{host="pi01", container="nginx-pub
 
 ## Rollout
 1. On docker.lan: `sudo mkdir -p /mnt/disk2/monitoring-data/loki`.
-2. Apply the Komodo sync (adds `loki`, `alloy-pi01`, `alloy-docker-main`), deploy `loki` first, then both Alloys. Redeploy `monitoring` so Grafana picks up the datasource.
+2. Apply the Komodo sync (adds `loki`, `alloy_pi01`, `alloy_docker-main`), deploy `loki` first, then both Alloys. Redeploy `monitoring` so Grafana picks up the datasource.
 3. `ansible-playbook playbooks/base.yml --tags alloy --limit octoprint`.
 4. Recreate `nginx-proxy` to pick up the log format.
 

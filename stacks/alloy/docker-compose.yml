@@ -1,6 +1,6 @@
 # Grafana Alloy: ships this host's Docker container logs and journal to Loki
-# (stacks/loki). One copy per Docker host: Komodo stacks alloy-pi01 and
-# alloy-docker-main (komodo/komodo.toml), Ansible on octoprint (base.yml).
+# (stacks/loki). One copy per Docker host: Komodo stacks alloy_pi01 and
+# alloy_docker-main (komodo/komodo.toml), Ansible on octoprint (base.yml).
 #
 # Reads the Docker socket and /var/log/journal read-only. Positions live in a
 # named volume so a restart doesn't re-send or skip lines.
