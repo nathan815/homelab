@@ -152,6 +152,19 @@ DOCKER_REGISTRY_DATA_DIR = /media/plexmedia01/docker-registry-data
 ##
 
 [[stack]]
+name = "privatebin"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/privatebin"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+
+##
+
+[[stack]]
 name = "media-system"
 [stack.config]
 server = "docker-main"
