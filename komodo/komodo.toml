@@ -74,7 +74,7 @@ LOKI_PORT = 3100
 ##
 
 [[stack]]
-name = "alloy-pi01"
+name = "alloy_pi01"
 [stack.config]
 server = "pi01"
 poll_for_updates = true
@@ -89,7 +89,7 @@ ALLOY_HOST = pi01
 ##
 
 [[stack]]
-name = "alloy-docker-main"
+name = "alloy_docker-main"
 [stack.config]
 server = "docker-main"
 poll_for_updates = true

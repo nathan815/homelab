@@ -97,7 +97,7 @@
       tags: container-mgmt
 
     # Log shipper (stacks/alloy -> Loki on pi01). Komodo runs it on its servers
-    # (alloy-pi01, alloy-docker-main); octoprint is not one.
+    # (alloy_pi01, alloy_docker-main); octoprint is not one.
     - role: deploy-stack
       vars:
         stack_name: alloy
