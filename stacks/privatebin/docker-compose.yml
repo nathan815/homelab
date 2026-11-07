@@ -14,9 +14,11 @@ services:
     labels:
       homelab.backup: "true"
     read_only: true
+    # s6 execs its service scripts from /run, so that tmpfs must not be noexec
+    # (Docker's tmpfs default); without :exec nginx and php-fpm never start.
     tmpfs:
       - /tmp
-      - /run
+      - /run:exec
       - /var/tmp
     cap_drop:
       - ALL
