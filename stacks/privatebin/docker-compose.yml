@@ -6,7 +6,7 @@ services:
     image: privatebin/nginx-fpm-alpine:2.1.1@sha256:9fbcc4d5671b974cafb55948d6fc3ab9eaf77f0c39271a50a16dd71bd4c4d3e6
     restart: always
     ports:
-      - "${PRIVATEBIN_PORT:-8090}:8080"
+      - "${PRIVATEBIN_PORT:-8091}:8080"
     # Pastes are stored encrypted in this volume (image creates it owned by the
     # unprivileged user, which a host bind mount would not be).
     volumes:
