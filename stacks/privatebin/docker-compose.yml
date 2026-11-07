@@ -1,0 +1,35 @@
+services:
+  # PrivateBin - https://paste.nathancj.com (public, via cloudflared -> nginx-public)
+  # and https://paste.lan.nathancj.com (LAN). Runs on docker-main (docker.lan).
+  privatebin:
+    container_name: privatebin
+    image: privatebin/nginx-fpm-alpine:2.1.1@sha256:9fbcc4d5671b974cafb55948d6fc3ab9eaf77f0c39271a50a16dd71bd4c4d3e6
+    restart: always
+    ports:
+      - "${PRIVATEBIN_PORT:-8091}:8080"
+    # Pastes are stored encrypted in this volume (image creates it owned by the
+    # unprivileged user, which a host bind mount would not be).
+    volumes:
+      - privatebin_data:/srv/data
+    labels:
+      homelab.backup: "true"
+    read_only: true
+    # s6 execs its service scripts from /run, so that tmpfs must not be noexec
+    # (Docker's tmpfs default); without :exec nginx and php-fpm never start.
+    tmpfs:
+      - /tmp
+      - /run:exec
+      - /var/tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  privatebin_data:
