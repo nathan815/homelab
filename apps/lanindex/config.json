@@ -16,6 +16,7 @@
     { "name": "Status Page", "url": "https://status.$domain" },
     { "name": "Grafana", "url": "https://grafana.$domain" },
     { "name": "Prometheus", "url": "https://prometheus.$domain" },
+    { "name": "Loki", "url": "https://loki.$domain/ready", "check_url": "https://loki.$domain/ready" },
     { "name": "Proxmox", "url": "http://proxmox.$domain:8006" },
     { "name": "Container Registry", "url": "https://ncr.$domain" },
     { "name": "UpSnap (PC Wake)", "url": "https://upsnap.$domain" },
