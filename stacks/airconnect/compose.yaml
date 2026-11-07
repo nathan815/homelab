@@ -3,7 +3,7 @@ name: airconnect
 services:
   airconnect:
     network_mode: host
-    image: 1activegeek/airconnect:1.12.4@sha256:9720dccec64b92737a48bc97f87061fbd33bac4a3c7e3de3c5f7a81aff0f660a
+    image: 1activegeek/airconnect:1.12.4@sha256:48f07d863f553ec8d01d6fcc514a9821f0d4789e3ea6804100cbfbe5f18e3ac0
     volumes:
       - /opt/stacks_data/airconnect:/config
     environment:
