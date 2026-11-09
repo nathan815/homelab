@@ -76,6 +76,21 @@ loki.process "filter" {
     selector = "{container=~\"loki|alloy|prometheus\"}"
     action   = "drop"
   }
+  // FerretDB logs one INFO line per database command (about 7k lines/hour, all
+  // from Komodo core). Keep warnings and errors.
+  stage.match {
+    selector = "{container=~\".*ferretdb.*\"}"
+    stage.drop {
+      expression = "^\\S+\\s+(INFO|DEBUG)\\s"
+    }
+  }
+  // Postgres' pg_cron logs every job start and finish (about 7k lines/hour).
+  stage.match {
+    selector = "{container=~\".*postgres.*\"}"
+    stage.drop {
+      expression = "LOG:\\s+cron job \\d+ (starting|COMMAND completed)"
+    }
+  }
   forward_to = [loki.write.default.receiver]
 }
 
