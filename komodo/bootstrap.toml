@@ -12,6 +12,8 @@ name = "homelab"
 repo = "nathan815/homelab"
 branch = "main"
 webhook_enabled = false
+# Alert (to alerters listening for ResourceSyncPendingUpdates) when a refresh finds changes.
+pending_alert = true
 # Never delete resources missing from komodo.toml (the v2 default, made explicit).
 delete = false
 resource_path = ["komodo/komodo.toml"]
