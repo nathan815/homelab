@@ -12,6 +12,7 @@
     { "name": "AdGuard Home", "url": "https://adguard.$domain" },
     { "name": "OctoPrint", "url": "https://octoprint.$domain" },
     { "name": "Komodo", "url": "https://komodo.$domain" },
+    { "name": "Woodpecker CI", "url": "https://woodpecker.$domain" },
     { "name": "Uptime Kuma", "url": "https://uptimekuma.$domain" },
     { "name": "Status Page", "url": "https://status.$domain" },
     { "name": "Grafana", "url": "https://grafana.$domain" },
