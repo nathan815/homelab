@@ -1,0 +1,7 @@
+---
+- hosts: docker.lan
+  roles:
+    - role: deploy-stack
+      vars:
+        stack_name: hermes
+      tags: hermes
