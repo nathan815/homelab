@@ -32,7 +32,69 @@
 
 - hosts: docker-hosts
   become: true
+  vars:
+    # Written to /etc/docker/daemon.json by geerlingguy.docker.
+    # live-restore keeps containers running while the daemon restarts, which the
+    # log-driver/log-opts change below needs (those are not hot-reloadable).
+    # Caps only affect containers created afterwards: recreate existing ones
+    # (Komodo redeploy) to adopt them.
+    docker_daemon_options:
+      live-restore: true
+      insecure-registries:
+        - "ncr.lan:80"
+      log-driver: json-file
+      log-opts:
+        max-size: "10m"
+        max-file: "3"
+    # The subset dockerd can apply on SIGHUP (no restart).
+    docker_reloadable_options: [live-restore, insecure-registries]
   pre_tasks:
+    # Bootstrap: a running daemon without live-restore stops every container when
+    # the role restarts it. Enable live-restore with a reload first (no restart),
+    # so the restart that applies log-driver/log-opts leaves containers running.
+    - name: Check whether the running Docker daemon has live-restore
+      ansible.builtin.command: docker info --format '{{ '{{' }}.LiveRestoreEnabled{{ '}}' }}'
+      register: docker_live_restore
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      tags: [docker, docker-daemon, docker-live-restore]
+
+    - name: Enable live-restore with a daemon reload (containers keep running)
+      when:
+        - docker_live_restore.rc == 0
+        - docker_live_restore.stdout | trim != 'true'
+      tags: [docker, docker-daemon, docker-live-restore]
+      block:
+        - name: Ensure /etc/docker exists
+          ansible.builtin.file:
+            path: /etc/docker
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Write reloadable daemon options
+          ansible.builtin.copy:
+            dest: /etc/docker/daemon.json
+            content: "{{ docker_daemon_options | dict2items | selectattr('key', 'in', docker_reloadable_options) | items2dict | to_nice_json }}\n"
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Reload dockerd (SIGHUP, no restart)
+          ansible.builtin.systemd:
+            name: docker
+            state: reloaded
+          when: not ansible_check_mode
+
+        - name: Confirm live-restore is active before the role restarts docker
+          ansible.builtin.command: docker info --format '{{ '{{' }}.LiveRestoreEnabled{{ '}}' }}'
+          register: docker_live_restore_after
+          changed_when: false
+          failed_when: docker_live_restore_after.stdout | trim != 'true'
+          when: not ansible_check_mode
+
     # Runtime data root: deploy-stack creates /opt/appdata/<stack> under it (issue #9)
     - name: Create /opt/appdata
       ansible.builtin.file:
@@ -72,22 +134,20 @@
           - name: docker
 
     - role: geerlingguy.docker
-      tags: [docker]
+      # docker-daemon: just the daemon (+ live-restore bootstrap). Prefer it over
+      # `docker`, which deploy-stack also uses for compose down/up.
+      tags: [docker, docker-daemon]
       vars:
         # docker_apt_arch: arm64
         # docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} stable"
         docker_users:
           - "{{ ansible_ssh_user }}"
-        docker_daemon_options:
-          insecure-registries:
-            - "ncr.lan:80"
-          log-driver: json-file
-          log-opts:
-            max-size: "10m"
-            max-file: "3"
 
     - role: docker-requires-mounts
       tags: [docker, docker-mounts]
+
+    - role: journald
+      tags: [journald]
 
     # Komodo deploys this on its servers (komodo/komodo.toml); octoprint is not one.
     - role: deploy-stack

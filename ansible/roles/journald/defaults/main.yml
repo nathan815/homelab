@@ -1,0 +1,3 @@
+---
+# Upper bound for persistent journal disk usage (/var/log/journal).
+journald_system_max_use: 100M

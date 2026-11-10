@@ -132,7 +132,7 @@ jobs:
           gh api -X POST "repos/${{ github.repository }}/deployments" \
             -f ref="$SHA" -f environment=production \
             -f task="deploy:${{ matrix.stack }}" -F auto_merge=false \
-            -f description="${{ github.event_name }} by ${{ github.actor }}" \
+            -f description="deploy:${{ matrix.stack }} (${{ github.event_name }} by ${{ github.actor }})" \
             -F 'required_contexts[]' --jq '"id=\(.id)"' >> "$GITHUB_OUTPUT"
       - name: Wait for Woodpecker's deploy result
         env:
