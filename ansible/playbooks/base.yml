@@ -89,6 +89,9 @@
     - role: docker-requires-mounts
       tags: [docker, docker-mounts]
 
+    - role: journald
+      tags: [journald]
+
     # Komodo deploys this on its servers (komodo/komodo.toml); octoprint is not one.
     - role: deploy-stack
       vars:

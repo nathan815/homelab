@@ -1,0 +1,22 @@
+---
+# Caps the persistent journal so it can't fill the OS disk (docker.lan hit 3.1 GB uncapped).
+# Drop-in rather than editing journald.conf, so package upgrades never conflict.
+- name: Ensure journald.conf.d exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Cap journal size
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/size.conf
+    content: |
+      # Managed by Ansible (roles/journald)
+      [Journal]
+      SystemMaxUse={{ journald_system_max_use }}
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart journald
