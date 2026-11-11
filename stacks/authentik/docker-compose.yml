@@ -1,0 +1,55 @@
+services:
+
+  # Authentik identity provider (OIDC/OAuth2 for the homelab and the MCP gateway).
+  # UI/API: http://docker-main.lan:${AUTHENTIK_PORT:-9000}. Public access (needed by
+  # claude.ai's OAuth flow) goes through the Cloudflare tunnel, see docs/authentik.md.
+  postgresql:
+    image: postgres:17.11-alpine@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+    container_name: authentik-postgres
+    restart: always
+    labels:
+      homelab.backup: "true"
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: ${AUTHENTIK_PG_PASS?set AUTHENTIK_PG_PASS}
+    volumes:
+      - "${APPDATA_DIR:-/opt/appdata}/authentik/postgres:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d authentik -U authentik"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  server:
+    image: ghcr.io/goauthentik/server:2026.8.5@sha256:602227a86455d6772e3d16b7d852713c4f864f40df5df894abd1285bb53979a5
+    container_name: authentik-server
+    command: server
+    restart: always
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment: &authentik-env
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY?set AUTHENTIK_SECRET_KEY}
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PG_PASS?set AUTHENTIK_PG_PASS}
+    ports:
+      - "${AUTHENTIK_PORT:-9000}:9000"
+    volumes:
+      - "${APPDATA_DIR:-/opt/appdata}/authentik/data:/data"
+
+  worker:
+    image: ghcr.io/goauthentik/server:2026.8.5@sha256:602227a86455d6772e3d16b7d852713c4f864f40df5df894abd1285bb53979a5
+    container_name: authentik-worker
+    command: worker
+    restart: always
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    environment: *authentik-env
+    volumes:
+      - "${APPDATA_DIR:-/opt/appdata}/authentik/data:/data"
+      - "${APPDATA_DIR:-/opt/appdata}/authentik/templates:/templates"

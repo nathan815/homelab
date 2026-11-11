@@ -267,6 +267,25 @@ post_deploy.command = "sh ../../komodo/scripts/nginx-apply-config.sh"
 ##
 
 [[stack]]
+name = "authentik"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/authentik"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+# Variables: generate with komodo/scripts/authentik-secrets.sh
+environment = """
+AUTHENTIK_PORT = 9000
+AUTHENTIK_SECRET_KEY = [[AUTHENTIK_SECRET_KEY]]
+AUTHENTIK_PG_PASS = [[AUTHENTIK_PG_PASS]]
+"""
+
+##
+
+[[stack]]
 name = "simplifi-mcp"
 [stack.config]
 server = "docker-main"
