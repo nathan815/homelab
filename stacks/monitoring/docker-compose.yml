@@ -71,6 +71,28 @@ services:
       test: wget --no-verbose --tries=1 --spider "http://localhost:3000/api/health" || exit 1
       interval: 10s
 
+  # Grafana MCP server (separate project, Grafana has none built in):
+  # http://<host>:${GRAFANA_MCP_PORT}/mcp. No auth of its own, so keep it LAN-only.
+  # Access to Grafana is whatever the service account token's role allows.
+  grafana-mcp:
+    image: grafana/mcp-grafana:2.3.0@sha256:c27248b5919d09d64ea273ca1b128b32902c6796f6e2dfcd11849d4f1363f9ed
+    container_name: grafana-mcp
+    restart: always
+    depends_on:
+      - grafana
+    command:
+      - '-t'
+      - 'streamable-http'
+      - '--address'
+      - '0.0.0.0:8000'
+    environment:
+      - GRAFANA_URL=http://grafana:3000
+      - GRAFANA_SERVICE_ACCOUNT_TOKEN=${GRAFANA_MCP_TOKEN?set GRAFANA_MCP_TOKEN}
+    ports:
+      - "${GRAFANA_MCP_PORT}:8000"
+    networks:
+      - back-tier
+
   internet_ping:
     image: prom/blackbox-exporter:v0.29.1@sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13
     container_name: internet-ping
