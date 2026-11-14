@@ -19,4 +19,4 @@ Tailscale node that is both a subnet router for the home LAN and an exit node, f
 
 Define `tag:homenet` in `tagOwners` and restrict access, e.g. allow only your user to reach `tag:homenet`, `192.168.0.0/24` and `autogroup:internet`. Optionally add `autoApprovers` for the route and exit node so step 2 is automatic.
 
-The host needs IP forwarding enabled (`net.ipv4.ip_forward=1`, `net.ipv6.conf.all.forwarding=1`).
+The host needs IP forwarding enabled (`net.ipv4.ip_forward=1`, `net.ipv6.conf.all.forwarding=1`). The container uses host networking, so this must be set on the host, not in compose. The `ip-forwarding` Ansible role does it for hosts in the `tailscale-hosts` inventory group: `cd ansible && ./ansible.sh ansible-playbook playbooks/base.yml --tags ip-forwarding --limit pi01`.

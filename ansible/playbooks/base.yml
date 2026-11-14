@@ -149,6 +149,10 @@
     - role: journald
       tags: [journald]
 
+    - role: ip-forwarding
+      when: inventory_hostname in groups['tailscale-hosts']
+      tags: [ip-forwarding]
+
     # Komodo deploys this on its servers (komodo/komodo.toml); octoprint is not one.
     - role: deploy-stack
       vars:

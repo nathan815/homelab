@@ -26,6 +26,12 @@ pi:
     pi01:
     octoprint:
 
+# Hosts that run the tailscale subnet router / exit node (stacks/tailscale, komodo.toml:
+# server = pi01); they need IP forwarding on the host.
+tailscale-hosts:
+  hosts:
+    pi01:
+
 docker-hosts:
   hosts:
     pi01:

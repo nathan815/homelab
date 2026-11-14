@@ -1,0 +1,16 @@
+---
+# Enables kernel IP forwarding on the host. The tailscale stack (stacks/tailscale)
+# runs with network_mode: host as a subnet router + exit node, so the setting must be
+# on the host; a container with host networking can't set it itself.
+# Drop-in under /etc/sysctl.d so it persists across reboots.
+- name: Enable IPv4/IPv6 forwarding
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-ip-forwarding.conf
+    content: |
+      # Managed by Ansible (roles/ip-forwarding)
+      net.ipv4.ip_forward = 1
+      net.ipv6.conf.all.forwarding = 1
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload sysctl
