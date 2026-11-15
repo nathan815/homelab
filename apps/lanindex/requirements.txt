@@ -10,7 +10,7 @@ click==8.1.7
     # via flask
 flask==3.1.0
     # via lanindex (pyproject.toml)
-idna==3.10
+idna==3.15
     # via requests
 itsdangerous==2.2.0
     # via flask
