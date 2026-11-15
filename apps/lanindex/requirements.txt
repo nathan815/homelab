@@ -20,7 +20,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-requests==2.32.3
+requests==2.33.0
     # via lanindex (pyproject.toml)
 urllib3==2.8.0
     # via requests
