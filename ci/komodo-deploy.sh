@@ -29,18 +29,21 @@ esac
 resp=$(mktemp)
 trap 'rm -f "$resp"' EXIT
 
-# call <read|write|execute> <json>: print the response body, or fail with the
-# request type, HTTP status and Komodo's {"error", "trace"} message.
+# call <read|write|execute> <json> [curl args...]: print the response body, or
+# fail with the request type, HTTP status and Komodo's {"error", "trace"}
+# message. Extra args go to curl (see poll_retry below).
 call() {
-  code=$(curl -sS -o "$resp" -w '%{http_code}' -X POST "$KOMODO_URL/$1" \
+  type=$1 body=$2
+  shift 2
+  code=$(curl -sS "$@" -o "$resp" -w '%{http_code}' -X POST "$KOMODO_URL/$type" \
     -H "Content-Type: application/json" \
     -H "X-Api-Key: $KOMODO_API_KEY" \
     -H "X-Api-Secret: $KOMODO_API_SECRET" \
-    -d "$2") || { echo "Komodo $1 request failed (no response from $KOMODO_URL)" >&2; exit 1; }
+    -d "$body") || { echo "Komodo $type request failed (no response from $KOMODO_URL)" >&2; exit 1; }
   case $code in
     2??) cat "$resp" ;;
     *)
-      echo "Komodo $1 $(echo "$2" | jq -r .type) failed: HTTP $code" >&2
+      echo "Komodo $type $(echo "$body" | jq -r .type) failed: HTTP $code" >&2
       jq -r '.error, (.trace[]? | "  " + .)' "$resp" >&2 2> /dev/null || cat "$resp" >&2
       exit 1
       ;;
@@ -63,12 +66,19 @@ fi
 
 # Komodo's execute call returns as soon as the update is created, so poll the
 # update until it completes and fail unless it succeeded.
+#
+# Deploying the DNS stack itself (adguardhome) briefly takes down name
+# resolution for pi01.lan, so the polling reads retry connection and DNS
+# failures for up to ~2 minutes. --retry-all-errors is safe here because
+# GetUpdate is read-only; DeployStack is not retried.
+poll_retry="--retry 24 --retry-delay 5 --retry-all-errors"
 update=$(call execute "{\"type\":\"DeployStack\",\"params\":{\"stack\":\"$stack\"}}")
 id=$(echo "$update" | jq -er '._id["$oid"]')
 echo "Komodo update $id started (DeployStack $stack)"
 i=0
 while [ $i -lt 120 ]; do
-  u=$(call read "{\"type\":\"GetUpdate\",\"params\":{\"id\":\"$id\"}}")
+  # shellcheck disable=SC2086 # intentional word splitting of curl flags
+  u=$(call read "{\"type\":\"GetUpdate\",\"params\":{\"id\":\"$id\"}}" $poll_retry)
   if [ "$(echo "$u" | jq -r .status)" = "Complete" ]; then
     echo "$u" | jq -r '.logs[]? | "[\(.stage)] \(.stdout) \(.stderr)"'
     [ "$(echo "$u" | jq -r .success)" = "true" ]
