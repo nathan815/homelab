@@ -1,0 +1,75 @@
+services:
+
+  # Shared AI memory (MCP) - https://<TS_HOSTNAME>.<tailnet>.ts.net
+  # Source: https://github.com/doobidoo/mcp-memory-service
+  #   /mcp        MCP endpoint (Claude Code, Codex, Cursor, ...)
+  #   /           web dashboard
+  #   /api        REST API
+  #   /oauth      OAuth 2.0 + dynamic client registration; the consent page
+  #               asks for MCP_API_KEY, so only someone holding it can approve.
+  # SQLite + sqlite-vec storage, embeddings run locally (ONNX all-MiniLM-L6-v2).
+  mcp-memory:
+    image: doobidoo/mcp-memory-service:12.10.0-slim@sha256:fc3bb6d01996e2510b0213e10bbba5566968a0457cf436fd843fffc592d9b1f3
+    container_name: mcp-memory
+    labels:
+      homelab.backup: "true"
+    restart: always
+    # Public via Funnel: cap it so a request flood can't starve the rest of the host.
+    cpus: 2
+    mem_limit: 2g
+    environment:
+      MCP_MODE: http
+      MCP_HTTP_PORT: "8000"
+      MCP_MDNS_ENABLED: "false"
+
+      MCP_MEMORY_STORAGE_BACKEND: sqlite_vec
+      MCP_MEMORY_SQLITE_PATH: /app/data/memory.db
+      MCP_MEMORY_SQLITE_PRAGMAS: journal_mode=WAL,busy_timeout=15000
+      MCP_MEMORY_BACKUPS_PATH: /app/data/backups
+
+      # Auth: API key for clients (X-API-Key header), OAuth for clients that
+      # need it (claude.ai / ChatGPT connectors). No anonymous access.
+      MCP_API_KEY: ${MCP_API_KEY?set MCP_API_KEY}
+      MCP_ALLOW_ANONYMOUS_ACCESS: "false"
+      MCP_OAUTH_ENABLED: "true"
+      MCP_OAUTH_ISSUER: ${PUBLIC_BASE_URL?set PUBLIC_BASE_URL}
+      # Fixed signing key so issued tokens survive restarts.
+      MCP_OAUTH_SECRET_KEY: ${OAUTH_SECRET_KEY?set OAUTH_SECRET_KEY}
+      MCP_OAUTH_STORAGE_BACKEND: sqlite
+      MCP_OAUTH_SQLITE_PATH: /app/data/oauth.db
+      MCP_CORS_ORIGINS: ${PUBLIC_BASE_URL}
+
+      LOG_LEVEL: INFO
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    volumes:
+      # Memory DB, OAuth clients/tokens, and the service's own backups
+      - "${APPDATA_DIR:-/opt/appdata}/mcp-memory/data:/app/data"
+      # ONNX embedding model cache (~25MB), so it isn't re-downloaded on recreate
+      - "${APPDATA_DIR:-/opt/appdata}/mcp-memory/cache:/root/.cache"
+    healthcheck:
+      # /mcp/health is unauthenticated by design
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/mcp/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+
+  # Public HTTPS via Tailscale Funnel: https://<TS_HOSTNAME>.<tailnet>.ts.net
+  # Funnel is needed for claude.ai / ChatGPT connectors, which connect from the
+  # vendor's cloud. Needs the `funnel` node attribute in the tailnet policy
+  # (same tag as stacks/simplifi-mcp). Everything but /mcp/health and the OAuth
+  # discovery/consent pages requires the API key or an OAuth token.
+  tailscale:
+    image: tailscale/tailscale:v1.104.4@sha256:ed6480b33c6eb67c9cbd203ed42b9fb57e361986725b6856def71b7a3d9e276c
+    container_name: mcp-memory-tailscale
+    restart: always
+    depends_on:
+      - mcp-memory
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY?set TS_AUTHKEY}
+      TS_HOSTNAME: ${TS_HOSTNAME?set TS_HOSTNAME}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_SERVE_CONFIG: /config/serve.json
+      TS_USERSPACE: "true"
+    volumes:
+      - "${APPDATA_DIR:-/opt/appdata}/mcp-memory/tailscale:/var/lib/tailscale"
+      - ./tailscale-serve.json:/config/serve.json:ro
