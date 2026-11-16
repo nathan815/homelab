@@ -287,6 +287,27 @@ TS_HOSTNAME = [[SIMPLIFI_MCP_TS_HOSTNAME]]
 ##
 
 [[stack]]
+name = "mcp-memory"
+[stack.config]
+server = "docker-main"
+poll_for_updates = true
+repo = "nathan815/homelab"
+branch = "main"
+run_directory = "stacks/mcp-memory"
+file_paths = ["docker-compose.yml"]
+pre_deploy.command = "sh ../../komodo/scripts/backup-stack.sh backup"
+# Variables: komodo/scripts/mcp-memory-secrets.sh | komodo/scripts/komodo-set-vars.sh
+environment = """
+MCP_API_KEY = [[MCP_MEMORY_API_KEY]]
+OAUTH_SECRET_KEY = [[MCP_MEMORY_OAUTH_SECRET_KEY]]
+PUBLIC_BASE_URL = [[MCP_MEMORY_PUBLIC_BASE_URL]]
+TS_AUTHKEY = [[MCP_MEMORY_TS_AUTHKEY]]
+TS_HOSTNAME = [[MCP_MEMORY_TS_HOSTNAME]]
+"""
+
+##
+
+[[stack]]
 name = "tailscale"
 [stack.config]
 server = "pi01"
