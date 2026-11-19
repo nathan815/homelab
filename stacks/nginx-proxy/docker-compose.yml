@@ -1,6 +1,6 @@
 services:
   nginx-internal:
-    image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
+    image: nginx:1.31.9@sha256:08f354a3b44c422021a5c0f5efb3e27f8f90236b5447d3bac4053f5f50ab6760
     container_name: nginx-internal
     restart: always
     # Wraps the stock entrypoint to reload nginx when certbot renews the cert
@@ -58,7 +58,7 @@ services:
       timeout: 5s
 
   nginx-public:
-    image: nginx:1.31@sha256:332d0beea97cff8c0d5d27976c0778a4b00345b9d74c2feaaf8efde548314948
+    image: nginx:1.31.9@sha256:08f354a3b44c422021a5c0f5efb3e27f8f90236b5447d3bac4053f5f50ab6760
     container_name: nginx-public
     restart: always
     networks: 
