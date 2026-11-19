@@ -1,0 +1,6 @@
+send DANGER two
+wait-done 60
+send /sethome
+wait-done 20
+send /memory pending
+wait-done 20
