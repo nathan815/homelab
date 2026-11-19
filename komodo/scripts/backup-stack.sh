@@ -10,16 +10,26 @@
 # non-zero exit blocks the deploy, by design. See komodo/README.md, "Backups".
 #
 # What is backed up: services labelled `homelab.backup: "true"` in the compose
-# file. For each, the named volumes and the read-write bind mounts under
-# BACKUP_DATA_ROOTS of its existing container(s), i.e. the data as it is now.
-# Config bind-mounted from git (/opt/komodo, /opt/stacks) is never included.
-# Those containers are stopped while the archive is written (SQLite/WAL safe),
-# then started again, so downtime is the archive time.
+# file that this deploy will recreate. For each, the named volumes and the
+# read-write bind mounts under BACKUP_DATA_ROOTS of its existing container(s),
+# i.e. the data as it is now. Config bind-mounted from git (/opt/komodo,
+# /opt/stacks) is never included. Only those containers are stopped while the
+# archive is written (SQLite/WAL safe), then started again, so downtime is the
+# archive time. Labelled services the deploy leaves alone keep running and are
+# not archived.
 #
-# The backup is skipped when no image changed: every image in the new compose
-# file is pinned by digest, already present locally, and the project's
-# containers run exactly that set of images. Anything else (an unpinned tag, a
-# new digest not pulled yet, a new or missing service) takes a backup.
+# A service counts as recreated when:
+#   - `docker compose up -d --dry-run` says Recreate for it. Compose decides
+#     from its config hash (image reference, env, ports, volumes, ...) and
+#     recreates dependents of a recreated service too (`depends_on`,
+#     `network_mode: service:...`), e.g. everything routed through a VPN container;
+#   - it has no container yet (new service);
+#   - its image is not pinned by digest (the tag may have moved, so assume it
+#     changes), or a service it needs (the same dependency kinds, plus
+#     `pid`/`ipc: service:`, `volumes_from`, `links`) is one of the above.
+# The backup is skipped when no labelled service is recreated (a deploy that
+# changes nothing, or only unlabelled services). If the dry run fails (registry
+# unreachable, ...), every labelled service is assumed recreated.
 #
 # Needs only the docker CLI, so it runs inside the Periphery container or on
 # the host. Files are touched only by a throwaway helper container (the
@@ -36,7 +46,7 @@
 #   BACKUP_MIN_FREE_MB   free space that must remain after the archive (default 1024)
 #   BACKUP_DATA_ROOTS    host dirs whose bind mounts count as data
 #                        (default "/opt/appdata /mnt/data1")
-#   BACKUP_FORCE=1       back up even if no image changed
+#   BACKUP_FORCE=1       back up every labelled service, whether or not it is recreated
 #   BACKUP_HELPER_IMAGE  image to run tar in (default: the komodo-periphery container's)
 #   COMPOSE_FILE         as for docker compose, if the stack has several files
 #
@@ -96,20 +106,70 @@ opted_in_services() {
     s && /^      homelab\.backup: / { v = $2; gsub(/"/, "", v); if (v == "true") print svc }'
 }
 
-# True if the deploy can't change any image (see the header).
-images_unchanged() {
-  want=""
-  for ref in $(docker compose -p "$project" config --images); do
-    case $ref in *@sha256:*) ;; *) return 1 ;; esac
-    id=$(docker image inspect -f '{{.Id}}' "$ref" 2> /dev/null) || return 1
-    want="$want$id
-"
+# Dependencies in $1 (`docker compose config` output), as "<service> <service it
+# needs>" lines. Compose normalises network_mode: service:X into depends_on.
+service_deps() {
+  echo "$1" | awk '
+    /^services:/ { s = 1; next }
+    s && /^[^ ]/ { s = 0 }
+    s && /^  [^ ]/ { svc = $1; sub(/:$/, "", svc); key = ""; next }
+    s && /^    [^ ]/ { key = $1; sub(/:$/, "", key)
+      if (key ~ /^(network_mode|pid|ipc)$/ && $2 ~ /^service:/) { d = $2; sub(/^service:/, "", d); print svc, d } next }
+    s && key == "depends_on" && /^      [^ -]/ { d = $1; sub(/:$/, "", d); print svc, d }
+    s && (key == "volumes_from" || key == "links") && /^      - / { d = $2; sub(/:.*/, "", d); print svc, d }'
+}
+
+# The image reference of each service in $1, as "<service> <image>" lines.
+service_images() {
+  echo "$1" | awk '
+    /^services:/ { s = 1; next }
+    s && /^[^ ]/ { s = 0 }
+    s && /^  [^ ]/ { svc = $1; sub(/:$/, "", svc) }
+    s && /^    image: / { print svc, $2 }'
+}
+
+# add_dependents <config> <services...>: print the services plus, transitively,
+# every service that depends on one of them (one per line).
+add_dependents() {
+  deps=$(service_deps "$1")
+  shift
+  list=" $* "
+  grew=1
+  while [ "$grew" = 1 ]; do
+    grew=0
+    for svc in $(echo "$deps" | awk '{ print $1 }' | sort -u); do
+      case $list in *" $svc "*) continue ;; esac
+      for need in $(echo "$deps" | awk -v s="$svc" '$1 == s { print $2 }'); do
+        case $list in *" $need "*) list="$list$svc " grew=1 && break ;; esac
+      done
+    done
   done
-  ids=$(project_containers)
-  [ -n "$ids" ] || return 1
+  for svc in $list; do echo "$svc"; done | awk '!seen[$0]++'
+}
+
+# Print the services (one per line) that `docker compose up -d` will recreate,
+# given the compose config in $1.
+recreated_services() {
+  changed=""
+  for svc in $(docker compose -p "$project" config --services); do
+    ref=$(service_images "$1" | awk -v s="$svc" '$1 == s { print $2 }')
+    case $ref in *@sha256:*) ;; *) changed="$changed $svc" && continue ;; esac
+    [ -n "$(project_containers "$svc")" ] || changed="$changed $svc"
+  done
+  # Compose's own plan. It reads manifests for images not pulled yet but
+  # downloads nothing, and starts nothing.
+  plan=$(docker compose -p "$project" up -d --dry-run --no-build 2>&1) || return 1
+  # An unrecognised output format must not read as "nothing changes".
+  if [ -n "$(project_containers)" ]; then
+    echo "$plan" | grep -Eq 'Container .* (Running|Recreate|Started)$' || return 1
+  fi
+  for name in $(echo "$plan" | awk '$NF == "Recreate" && $(NF - 2) == "Container" { print $(NF - 1) }'); do
+    changed="$changed $(docker inspect -f '{{index .Config.Labels "com.docker.compose.service"}}' "$name")"
+  done
+  # Compose recreates the dependents of what it recreates, but not of the
+  # services added above.
   # shellcheck disable=SC2086
-  have=$(docker inspect -f '{{.Image}}' $ids)
-  [ "$(printf '%s' "$want" | sort -u)" = "$(printf '%s\n' "$have" | sort -u)" ]
+  add_dependents "$1" $changed
 }
 
 # Print "bind <path>" / "volume <name>" for a container's data mounts.
@@ -189,6 +249,7 @@ write_archive() {
 # Stop the running containers among $1 and remember them; start_containers (also
 # run on exit) starts them again.
 stopped=""
+stop=""
 stop_containers() {
   for c in $1; do
     [ "$(docker inspect -f '{{.State.Running}}' "$c")" = true ] && stopped="$stopped $c"
@@ -200,11 +261,22 @@ stop_containers() {
   fi
 }
 start_containers() {
+  # A container that joins another's network can't start before that one has,
+  # so retry the ones that fail until they all have.
+  pass=0
+  while [ -n "$stopped" ] && [ "$pass" -lt 5 ]; do
+    pending=""
+    for c in $stopped; do
+      docker start "$c" > /dev/null 2>&1 || pending="$pending $c"
+    done
+    stopped=$pending pass=$((pass + 1))
+  done
   if [ -n "$stopped" ]; then
-    # shellcheck disable=SC2086
-    docker start $stopped > /dev/null && log "started them again"
-    stopped=""
+    echo "backup-stack: ERROR: could not start again:$stopped" >&2
+    exit 1
   fi
+  [ "$pass" -gt 0 ] && log "started them again"
+  return 0
 }
 trap start_containers EXIT
 
@@ -217,9 +289,26 @@ cmd_backup() {
     log "no service in $project has the homelab.backup label, nothing to back up"
     return
   fi
-  if [ "$BACKUP_FORCE" != 1 ] && images_unchanged; then
-    log "images unchanged, skipping the backup (BACKUP_FORCE=1 to force)"
-    return
+  if [ "$BACKUP_FORCE" != 1 ]; then
+    recreated=$(recreated_services "$config") || {
+      log "docker compose up --dry-run failed, assuming every labelled service is recreated"
+      recreated=$services
+    }
+    log "will be recreated:$(echo " $recreated" | tr '\n' ' ')"
+    # Keep the labelled services that are being recreated.
+    selected=""
+    for svc in $services; do
+      case "
+$recreated
+" in *"
+$svc
+"*) selected="$selected $svc" ;; esac
+    done
+    if [ -z "$selected" ]; then
+      log "no labelled service is recreated by this deploy, skipping the backup (BACKUP_FORCE=1 to force)"
+      return
+    fi
+    services=$selected
   fi
   containers=""
   for svc in $services; do
@@ -234,7 +323,13 @@ cmd_backup() {
   echo "$entries" | sed 's/^/  /'
   image=$(helper_image)
   check_space
-  stop_containers "$containers"
+  # Also stop what runs on top of them (e.g. through their network), since
+  # that breaks when they restart.
+  # shellcheck disable=SC2086
+  for svc in $(add_dependents "$config" $services); do
+    stop="$stop $(project_containers "$svc")"
+  done
+  stop_containers "$stop"
   write_archive "$stack-$(timestamp).tar.gz" "$BACKUP_KEEP"
   start_containers
 }
