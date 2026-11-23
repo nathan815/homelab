@@ -1,6 +1,6 @@
 services:
   nginx-internal:
-    image: nginx:1.31.9@sha256:08f354a3b44c422021a5c0f5efb3e27f8f90236b5447d3bac4053f5f50ab6760
+    image: nginx:1.31.9@sha256:84f7876d21d154885f99554d7ae325d8c2213f9169726ea7ab60642f2573a787
     container_name: nginx-internal
     restart: always
     # Wraps the stock entrypoint to reload nginx when certbot renews the cert
@@ -30,7 +30,7 @@ services:
   # certonly --keep-until-expiring is idempotent: it issues on first run and renews within 30 days of expiry.
   # Cert storage and the API token live under /opt/appdata/nginx-proxy (created by Ansible), outside this stack folder.
   certbot:
-    image: certbot/dns-cloudflare:v5.9.0@sha256:8216d4732d11772a9cf2fb30d022abf9eec7c83af2e33f002aa9e371c5192b67
+    image: certbot/dns-cloudflare:v5.10.0@sha256:6d5e1e84f687ce81786c97cbeccb9dda94d86bbb29a81dbb85527bd68008d77d
     container_name: certbot-lan
     restart: always
     labels:
@@ -58,7 +58,7 @@ services:
       timeout: 5s
 
   nginx-public:
-    image: nginx:1.31.9@sha256:08f354a3b44c422021a5c0f5efb3e27f8f90236b5447d3bac4053f5f50ab6760
+    image: nginx:1.31.9@sha256:84f7876d21d154885f99554d7ae325d8c2213f9169726ea7ab60642f2573a787
     container_name: nginx-public
     restart: always
     networks: 

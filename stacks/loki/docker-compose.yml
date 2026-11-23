@@ -9,7 +9,7 @@
 #   sudo mkdir -p /mnt/disk2/monitoring-data/loki
 services:
   loki:
-    image: grafana/loki:3.5.5@sha256:31628519045e7f28692a7ae73b4a3fd293dccb425585ed5d16ceea3b5c9592e6
+    image: grafana/loki:3.7.10@sha256:b43c257ccfc925d4a50b8717cac61a3b51df8c48d01847936057e5c4075a24a7
     container_name: loki
     # Runs as root so it can write the bind-mounted data dir
     user: root
