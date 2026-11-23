@@ -33,6 +33,18 @@ jobs:
             env_file=$(dirname "$f")/.env.defaults
             if [ -f "$env_file" ]; then docker compose --env-file "$env_file" -f "$f" config > /dev/null; else docker compose -f "$f" config > /dev/null; fi
           done
+      - name: Healthcheck binaries exist in their images
+        # An image bump can drop the tool a healthcheck calls (Loki 3.6+ is distroless: no wget/sh)
+        run: python3 -I .github/scripts/check_healthchecks.py
+      - name: Loki / Alloy config check
+        # Run the real configs against the pinned (Dependabot-bumped) images
+        run: |
+          loki=$(docker compose --env-file stacks/loki/.env.defaults -f stacks/loki/docker-compose.yml config --images)
+          docker run --rm -v "$PWD/stacks/loki/loki.yml:/etc/loki/loki.yml:ro" "$loki" \
+            -config.file=/etc/loki/loki.yml -verify-config
+          alloy=$(docker compose --env-file stacks/alloy/.env.defaults -f stacks/alloy/docker-compose.yml config --images)
+          docker run --rm -e ALLOY_HOST=ci -e LOKI_URL=http://loki.invalid:3100/loki/api/v1/push \
+            -v "$PWD/stacks/alloy/config.alloy:/etc/alloy/config.alloy:ro" "$alloy" validate /etc/alloy/config.alloy
       - name: nginx -t (nginx-proxy)
         # Komodo deploys nginx-proxy straight from main, so a bad config would take the LAN's web access down
         run: bash "$PWD/stacks/nginx-proxy/validate.sh"
