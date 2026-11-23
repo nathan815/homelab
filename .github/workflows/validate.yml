@@ -36,18 +36,16 @@ jobs:
       - name: Healthcheck binaries exist in their images
         # An image bump can drop the tool a healthcheck calls (Loki 3.6+ is distroless: no wget/sh)
         run: python3 -I .github/scripts/check_healthchecks.py
-      - name: Loki / Alloy config check
-        # Run the real configs against the pinned (Dependabot-bumped) images
+      - name: Stack config checks (stacks/*/validate.sh)
+        # Each stack that has one validates its real config with its pinned image
+        # (nginx -t, loki -verify-config, alloy validate, ...). A bad nginx-proxy
+        # config would take the LAN's web access down: Komodo deploys it from main.
         run: |
-          loki=$(docker compose --env-file stacks/loki/.env.defaults -f stacks/loki/docker-compose.yml config --images)
-          docker run --rm -v "$PWD/stacks/loki/loki.yml:/etc/loki/loki.yml:ro" "$loki" \
-            -config.file=/etc/loki/loki.yml -verify-config
-          alloy=$(docker compose --env-file stacks/alloy/.env.defaults -f stacks/alloy/docker-compose.yml config --images)
-          docker run --rm -e ALLOY_HOST=ci -e LOKI_URL=http://loki.invalid:3100/loki/api/v1/push \
-            -v "$PWD/stacks/alloy/config.alloy:/etc/alloy/config.alloy:ro" "$alloy" validate /etc/alloy/config.alloy
-      - name: nginx -t (nginx-proxy)
-        # Komodo deploys nginx-proxy straight from main, so a bad config would take the LAN's web access down
-        run: bash "$PWD/stacks/nginx-proxy/validate.sh"
+          for f in stacks/*/validate.sh; do
+            echo "::group::$f"
+            bash "$PWD/$f"
+            echo "::endgroup::"
+          done
       - name: promtool / blackbox config check (monitoring)
         run: |
           # --syntax-only: the HA token credentials_file only exists at runtime
