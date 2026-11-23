@@ -38,7 +38,7 @@ jobs:
         run: python3 -I .github/scripts/check_healthchecks.py
       - name: Stack config checks (stacks/*/validate.sh)
         # Each stack that has one validates its real config with its pinned image
-        # (nginx -t, loki -verify-config, alloy validate, ...). A bad nginx-proxy
+        # (nginx -t, loki -verify-config, alloy validate, promtool, ...). A bad nginx-proxy
         # config would take the LAN's web access down: Komodo deploys it from main.
         run: |
           for f in stacks/*/validate.sh; do
@@ -46,13 +46,6 @@ jobs:
             bash "$PWD/$f"
             echo "::endgroup::"
           done
-      - name: promtool / blackbox config check (monitoring)
-        run: |
-          # --syntax-only: the HA token credentials_file only exists at runtime
-          docker run --rm -v "$PWD/stacks/monitoring:/work:ro" --entrypoint /bin/promtool \
-            prom/prometheus check config --syntax-only /work/prometheus/prometheus.yml
-          docker run --rm -v "$PWD/stacks/monitoring/blackbox/config:/config:ro" \
-            prom/blackbox-exporter --config.file=/config/blackbox.yml --config.check
       - name: shellcheck
         run: shellcheck --severity=error stacks/*.sh ci/*.sh komodo/scripts/*.sh
       - name: deployable stacks
