@@ -37,6 +37,11 @@
     { "name": "QBT", "url": "https://qbt.$domain" },
     { "name": "qui (QBT UI)", "url": "https://qui.$domain" },
     { "name": "Router", "url": "http://router.lan" },
+    {
+      "name": "Memory MCP",
+      "url": "https://memory-mcp.tail96db28.ts.net",
+      "check_url": "https://memory-mcp.tail96db28.ts.net/mcp/health"
+    },
     { "name": "WireGuard", "url": "https://wireguard.$domain" },
     { "name": "Zigbee2MQTT", "url": "http://192.168.0.29:8888" },
     { "name": "Home Assistant Observer", "url": "http://hass.$domain:4357" },
