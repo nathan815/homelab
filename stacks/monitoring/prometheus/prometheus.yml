@@ -76,3 +76,28 @@ scrape_configs:
       target_label: __param_target
     - target_label: __address__
       replacement: internet_ping:9115  # The blackbox exporter's real hostname:port.
+
+# External HTTP readiness probes for services whose image can't run a Docker
+# healthcheck (distroless: no sh/wget/curl). Loki 3.6+ is one. probe_success=0
+# means down/not ready. Same idea as a Kubernetes httpGet readinessProbe.
+- job_name: service_ready
+  metrics_path: /probe
+  scrape_interval: 30s
+  params:
+    module: [http_2xx]
+  static_configs:
+    - targets:
+        - http://docker.lan:3100/ready;loki
+  relabel_configs:
+    - source_labels: [__address__]
+      regex: '(.*);(.*)'
+      target_label: instance
+      replacement: $1
+    - source_labels: [__address__]
+      regex: '(.*);(.*)'
+      target_label: service
+      replacement: $2
+    - source_labels: [instance]
+      target_label: __param_target
+    - target_label: __address__
+      replacement: internet_ping:9115  # blackbox exporter
