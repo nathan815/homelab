@@ -9,8 +9,10 @@ services:
   uptime-kuma:
     image: louislam/uptime-kuma:2.1.0-beta-slim.1@sha256:599ebb0964cf699426a905b1f1f4e48d6bec9fb03b652170b824fbce35676766
     volumes:
-      # Outside /opt/stacks/monitoring: Komodo owns that folder (git clone)
-      - /mnt/data1/monitoring-data/uptime-kuma:/app/data
+      # Outside the stack folder: Komodo owns that (git clone). On pi01's SD card,
+      # not /mnt/data1 with Prometheus: when that USB stick went read-only
+      # (2026-11-14) it took down both monitors at once, so nothing alerted.
+      - ${APPDATA_DIR:-/opt/appdata}/monitoring/uptime-kuma:/app/data
     labels:
       homelab.backup: "true"
     ports:
@@ -40,6 +42,34 @@ services:
     healthcheck:
       test: wget --no-verbose --tries=1 --spider "http://localhost:9090/-/healthy" || exit 1
       interval: 10s
+
+  # Routes Prometheus alerts to Discord/Pushover and pings healthchecks.io
+  # (README.md, "Alerting"). Config: ./alertmanager/alertmanager.yml.
+  alertmanager:
+    image: prom/alertmanager:v0.34.2@sha256:39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b
+    container_name: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://pi01.lan:9093'
+    ports:
+      - "9093:9093"
+    restart: always
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      # Silences and notification log only. A named volume, so it's owned by the
+      # image's nobody user; on the SD card, not /mnt/data1.
+      - alertmanager_data:/alertmanager
+    secrets:
+      - discord_webhook_url
+      - pushover_user_key
+      - pushover_token
+      - healthchecks_ping_url
+    networks:
+      - back-tier
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider "http://localhost:9093/-/healthy" || exit 1
+      interval: 30s
 
   grafana:
     image: grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205
@@ -109,9 +139,19 @@ volumes:
   grafana_data:
     # Pinned to the name the Ansible-deployed project (~/monitoring) created
     name: monitoring_grafana_data
+  alertmanager_data:
 
 secrets:
   # Mounted at /run/secrets/home_assistant_token (read via credentials_file in
   # prometheus.yml). Value comes from the stack's .env, never committed.
   home_assistant_token:
     environment: HOME_ASSISTANT_TOKEN
+  # Alertmanager's notification secrets, same pattern (README.md, "Alerting")
+  discord_webhook_url:
+    environment: ALERTMANAGER_DISCORD_WEBHOOK_URL
+  pushover_user_key:
+    environment: ALERTMANAGER_PUSHOVER_USER_KEY
+  pushover_token:
+    environment: ALERTMANAGER_PUSHOVER_TOKEN
+  healthchecks_ping_url:
+    environment: ALERTMANAGER_HEALTHCHECKS_PING_URL
