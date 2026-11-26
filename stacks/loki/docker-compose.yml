@@ -20,7 +20,6 @@ services:
     volumes:
       - ./loki.yml:/etc/loki/loki.yml:ro
       - /mnt/disk2/monitoring-data/loki:/loki
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider "http://localhost:3100/ready" || exit 1
-      interval: 30s
-      start_period: 30s
+    # No healthcheck: since 3.6 the image is distroless (only /usr/bin/loki,
+    # no sh/wget/curl) and loki has no self-probe subcommand. Nothing
+    # depends_on it; probe http://docker.lan:3100/ready from outside.
