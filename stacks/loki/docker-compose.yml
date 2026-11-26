@@ -22,4 +22,5 @@ services:
       - /mnt/disk2/monitoring-data/loki:/loki
     # No healthcheck: since 3.6 the image is distroless (only /usr/bin/loki,
     # no sh/wget/curl) and loki has no self-probe subcommand. Nothing
-    # depends_on it; probe http://docker.lan:3100/ready from outside.
+    # depends_on it. Prometheus probes /ready from outside instead, via
+    # blackbox: job service_ready in stacks/monitoring/prometheus/prometheus.yml.
