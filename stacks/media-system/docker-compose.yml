@@ -28,6 +28,26 @@ services:
       retries: 3
       start_period: 60s
 
+  kometa:
+    # Builds Plex collections (franchises, genres, trending, ...) from kometa/config.yml.
+    # Runs once a day at KOMETA_TIMES; run now: docker compose run --rm -e KOMETA_RUN=true kometa
+    image: kometateam/kometa:v2.5.5@sha256:864cec57d099c71a26a5a5ce2784d34d9b53874c91269c3a12df3949eab96562
+    container_name: kometa
+    restart: unless-stopped
+    environment:
+      - TZ=America/Detroit
+      - KOMETA_TIMES=${KOMETA_TIMES:-04:00}
+      # Referenced in config.yml as <<plextoken>> and <<tmdbkey>> (Komodo variables)
+      - KOMETA_PLEXTOKEN=${PLEX_TOKEN}
+      - KOMETA_TMDBKEY=${TMDB_API_KEY}
+    # Plex runs with host networking, so reach it through the host gateway
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # logs and cache; config.yml comes from the repo
+      - "${APPDATA_DIR:-/opt/appdata}/media-system/kometa:/config"
+      - "./kometa/config.yml:/config/config.yml:ro"
+
   tautulli:
     image: ghcr.io/tautulli/tautulli:v2.19.1@sha256:239cd6dbc429a0eb441bdf88a7a015871e2d4d6e02b6e6039af30c0487528a8e
     container_name: plex-tautulli

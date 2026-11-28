@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kometa-team/kometa/nightly/json-schema/config-schema.json
+# Kometa config: automatic Plex collections. Mounted read-only into the kometa
+# container; secrets come from KOMETA_* env vars (see docker-compose.yml).
+# Default collection files: https://kometa.wiki/en/latest/defaults/collections/
+# Library names below must match the Plex library names exactly.
+
+plex:
+  url: http://host.docker.internal:32400
+  token: <<plextoken>>
+  timeout: 60
+
+tmdb:
+  apikey: <<tmdbkey>>
+  language: en
+  region: US
+
+libraries:
+  Movies:
+    collection_files:
+      - default: franchise    # Harry Potter, Bond, Marvel, ... (TMDb collections)
+      - default: genre
+      - default: tmdb         # TMDb trending, popular, top rated
+      - default: basic        # newly released, recently added
+      - default: streaming    # "On Netflix", "On Disney+", ...
+      - default: seasonal     # Halloween, Christmas, ...
+  TV Shows:
+    collection_files:
+      - default: genre
+      - default: tmdb
+      - default: basic
+      - default: network
+      - default: streaming
+
+settings:
+  run_order:
+    - collections
+  sync_mode: sync             # drop items that leave a list (e.g. no longer trending)
+  minimum_items: 2            # skip franchise collections with only one owned movie
+  delete_below_minimum: true

@@ -223,6 +223,8 @@ file_paths = ["docker-compose.yml"]
 pre_deploy.command = "BACKUP_KEEP=2 sh ../../komodo/scripts/backup-stack.sh backup"
 environment = """
 VPN_WG_PRIVATE_KEY = [[MEDIA_VPN_WG_PRIVATE_KEY]]
+PLEX_TOKEN = [[MEDIA_PLEX_TOKEN]]
+TMDB_API_KEY = [[MEDIA_TMDB_API_KEY]]
 """
 
 ##
