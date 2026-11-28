@@ -1,7 +1,7 @@
 ---
 services:
   plex:
-    image: lscr.io/linuxserver/plex:1.43.5@sha256:d6e045dac4ea2ccb94e0aa4441e02dbec9c9d306d650814eb33d20ad497a2107
+    image: lscr.io/linuxserver/plex:1.43.5@sha256:31e4c2de666cd130bc389133b6c63af08912559d992370e52822f8f229185aef
     container_name: plex
     restart: always
     network_mode: host
@@ -190,7 +190,7 @@ services:
     container_name: qbt
     labels:
       homelab.backup: "true"
-    image: linuxserver/qbittorrent:5.3.0@sha256:3d4c4545d51a690a0df15a2ff99038823a88a9822df8e794526447b9afbd7384
+    image: linuxserver/qbittorrent:5.3.1@sha256:1fa2f9692501f27ce51c4fffd771d63ec38f1163cb648941c324344b7c5a3915
     restart: always
     network_mode: "service:gluetun-vpn"
     depends_on:
@@ -214,7 +214,7 @@ services:
     container_name: qui
     labels:
       homelab.backup: "true"
-    image: ghcr.io/autobrr/qui:v1.35.0@sha256:a5b2f5faf6388cce257137c88e4b189458fd799cf9119ed476c980e5a69341b2
+    image: ghcr.io/autobrr/qui:v1.37.0@sha256:73e662791712a01dd1f7565b21792a406e3478f7257937e9e0bb110614cc4075
     restart: always
     user: "1000:1000"
     depends_on:
