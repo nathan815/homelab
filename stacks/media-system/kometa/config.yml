@@ -15,7 +15,7 @@ tmdb:
   region: US
 
 libraries:
-  Movies:
+  Nateflix Movies:
     collection_files:
       - default: franchise    # Harry Potter, Bond, Marvel, ... (TMDb collections)
       - default: genre
@@ -23,12 +23,16 @@ libraries:
       - default: basic        # newly released, recently added
       - default: streaming    # "On Netflix", "On Disney+", ...
       - default: seasonal     # Halloween, Christmas, ...
-  TV Shows:
+  Nateflix TV Shows:
     collection_files:
       - default: genre
       - default: tmdb
       - default: basic
       - default: network
+      - default: streaming
+  Nateflix Documentaries:
+    collection_files:
+      - default: basic
       - default: streaming
 
 settings:
