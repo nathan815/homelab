@@ -6,11 +6,26 @@ global:
 alerting:
   alertmanagers:
   - static_configs:
-    - targets: []
+    - targets: ['alertmanager:9093']
     scheme: http
     timeout: 10s
 
+# Alert rules (README.md, "Alerting"). Tests: alerts_test.yml, run by validate.sh.
+rule_files:
+  - alerts.yml
+
 scrape_configs:
+
+# Prometheus and Alertmanager themselves: the alerts on failed TSDB writes and
+# failed notifications need these. Without them a read-only data disk went
+# unnoticed for 12 days in Nov 2026.
+- job_name: prometheus
+  static_configs:
+    - targets: ['localhost:9090']
+
+- job_name: alertmanager
+  static_configs:
+    - targets: ['alertmanager:9093']
 
 - job_name: nodehealth
   honor_timestamps: true

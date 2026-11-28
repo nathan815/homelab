@@ -1,0 +1,118 @@
+# promtool test rules alerts_test.yml (run by ../validate.sh)
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+
+# The 2026-11-14 failure: pi01's data disk flips to read-only.
+- interval: 1m
+  input_series:
+    - series: 'node_filesystem_readonly{instance="pi01.lan:9100",mountpoint="/mnt/data1",fstype="ext4"}'
+      values: '0 0 1 1 1 1'
+    - series: 'node_filesystem_readonly{instance="pi01.lan:9100",mountpoint="/",fstype="ext4"}'
+      values: '0x5'
+  alert_rule_test:
+    - eval_time: 2m
+      alertname: FilesystemReadOnly
+      exp_alerts: []          # pending: `for: 1m` not yet met
+    - eval_time: 4m
+      alertname: FilesystemReadOnly
+      exp_alerts:
+        - exp_labels:
+            severity: critical
+            instance: pi01.lan:9100
+            mountpoint: /mnt/data1
+            fstype: ext4
+          exp_annotations:
+            summary: /mnt/data1 on pi01.lan:9100 is read-only
+            description: >-
+              The filesystem was mounted read-write but is now read-only, usually after
+              disk I/O errors. Check `dmesg` on the host.
+
+- interval: 1m
+  input_series:
+    - series: 'prometheus_tsdb_wal_writes_failed_total{instance="localhost:9090",job="prometheus"}'
+      values: '0 0 0 3 9 15'
+  alert_rule_test:
+    - eval_time: 2m
+      alertname: PrometheusTsdbWriteFailures
+      exp_alerts: []
+    - eval_time: 5m
+      alertname: PrometheusTsdbWriteFailures
+      exp_alerts:
+        - exp_labels:
+            severity: critical
+            instance: localhost:9090
+            job: prometheus
+          exp_annotations:
+            summary: Prometheus is failing to write its database
+            description: >-
+              Metrics are not being saved. Check that /mnt/data1 on pi01 is mounted
+              read-write and has free space, and check the prometheus container logs.
+
+- interval: 1m
+  input_series:
+    - series: 'prometheus_tsdb_head_samples_appended_total{instance="localhost:9090",job="prometheus"}'
+      values: '0+100x10 1000x15'
+  alert_rule_test:
+    - eval_time: 10m
+      alertname: PrometheusNotIngesting
+      exp_alerts: []
+    - eval_time: 25m
+      alertname: PrometheusNotIngesting
+      exp_alerts:
+        - exp_labels:
+            severity: critical
+            instance: localhost:9090
+            job: prometheus
+          exp_annotations:
+            summary: Prometheus has stopped storing new samples
+
+# A 1.8T media disk at 99% with 19G free must not page; a Pi disk with 1G free must.
+- interval: 1m
+  input_series:
+    - series: 'node_filesystem_avail_bytes{instance="docker.lan:9100",mountpoint="/mnt/disk1",fstype="ext4"}'
+      values: '20000000000x20'
+    - series: 'node_filesystem_avail_bytes{instance="pi01.lan:9100",mountpoint="/",fstype="ext4"}'
+      values: '1000000000x20'
+  alert_rule_test:
+    - eval_time: 20m
+      alertname: FilesystemAlmostFull
+      exp_alerts:
+        - exp_labels:
+            severity: warning
+            instance: pi01.lan:9100
+            mountpoint: /
+            fstype: ext4
+          exp_annotations:
+            summary: / on pi01.lan:9100 has 953.7MiB free
+
+- interval: 1m
+  input_series:
+    - series: 'up{job="nodehealth",instance="hass.lan:9100"}'
+      values: '1 1 0x15'
+  alert_rule_test:
+    - eval_time: 8m
+      alertname: TargetDown
+      exp_alerts: []
+    - eval_time: 14m
+      alertname: TargetDown
+      exp_alerts:
+        - exp_labels:
+            severity: warning
+            job: nodehealth
+            instance: hass.lan:9100
+          exp_annotations:
+            summary: Prometheus can't scrape nodehealth on hass.lan:9100
+
+- interval: 1m
+  alert_rule_test:
+    - eval_time: 1m
+      alertname: Watchdog
+      exp_alerts:
+        - exp_labels:
+            severity: heartbeat
+          exp_annotations:
+            summary: Alerting pipeline heartbeat (always firing)

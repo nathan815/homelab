@@ -1,0 +1,108 @@
+# Prometheus alert rules, routed by Alertmanager (../alertmanager/alertmanager.yml).
+# severity: critical -> Discord + Pushover, warning -> Discord, heartbeat -> healthchecks.io.
+# Tests: alerts_test.yml (promtool test rules, run by ../validate.sh).
+
+groups:
+
+- name: heartbeat
+  rules:
+  # Always firing. Alertmanager pings healthchecks.io with it every minute, and
+  # healthchecks.io alerts when the pings stop: Prometheus, Alertmanager, pi01,
+  # the network or the power is down. The rules below can't report those.
+  - alert: Watchdog
+    expr: vector(1)
+    labels:
+      severity: heartbeat
+    annotations:
+      summary: Alerting pipeline heartbeat (always firing)
+
+- name: storage
+  rules:
+  # ext4 remounts read-only on I/O errors; pi01's /mnt/data1 USB stick did this
+  # on 2026-11-14 and Prometheus and Uptime Kuma silently stopped saving data.
+  - alert: FilesystemReadOnly
+    expr: node_filesystem_readonly{fstype=~"ext4|xfs|btrfs|vfat"} == 1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "{{ $labels.mountpoint }} on {{ $labels.instance }} is read-only"
+      description: >-
+        The filesystem was mounted read-write but is now read-only, usually after
+        disk I/O errors. Check `dmesg` on the host.
+
+  # Absolute free space, not a percentage: docker.lan's media disk runs ~99% full
+  # on purpose, and a few GiB matters most on the small Pi disks.
+  - alert: FilesystemAlmostFull
+    expr: node_filesystem_avail_bytes{fstype=~"ext4|xfs|btrfs"} < 2 * 1024^3
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: "{{ $labels.mountpoint }} on {{ $labels.instance }} has {{ $value | humanize1024 }}B free"
+
+  - alert: FilesystemFillingUp
+    expr: >-
+      node_filesystem_avail_bytes{fstype=~"ext4|xfs|btrfs"}
+        / node_filesystem_size_bytes{fstype=~"ext4|xfs|btrfs"} < 0.10
+      and predict_linear(node_filesystem_avail_bytes{fstype=~"ext4|xfs|btrfs"}[6h], 24 * 3600) < 0
+    for: 1h
+    labels:
+      severity: warning
+    annotations:
+      summary: "{{ $labels.mountpoint }} on {{ $labels.instance }} will be full within a day at the current rate"
+
+- name: prometheus
+  rules:
+  - alert: PrometheusTsdbWriteFailures
+    expr: >-
+      increase(prometheus_tsdb_wal_writes_failed_total[10m]) > 0
+      or increase(prometheus_tsdb_compactions_failed_total[1h]) > 0
+      or increase(prometheus_tsdb_checkpoint_creations_failed_total[1h]) > 0
+      or increase(prometheus_tsdb_head_truncations_failed_total[1h]) > 0
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus is failing to write its database
+      description: >-
+        Metrics are not being saved. Check that /mnt/data1 on pi01 is mounted
+        read-write and has free space, and check the prometheus container logs.
+
+  - alert: PrometheusNotIngesting
+    expr: rate(prometheus_tsdb_head_samples_appended_total[5m]) == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Prometheus has stopped storing new samples
+
+  - alert: PrometheusRuleEvaluationFailures
+    expr: increase(prometheus_rule_evaluation_failures_total[10m]) > 0
+    labels:
+      severity: warning
+    annotations:
+      summary: "Prometheus failed to evaluate rules in group {{ $labels.rule_group }}"
+
+  - alert: PrometheusNotificationsFailing
+    expr: increase(prometheus_notifications_errors_total[10m]) > 0
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus is failing to send alerts to Alertmanager
+
+  - alert: AlertmanagerNotificationsFailing
+    expr: increase(alertmanager_notifications_failed_total{integration!="webhook"}[10m]) > 0
+    labels:
+      severity: warning
+    annotations:
+      summary: "Alertmanager is failing to send {{ $labels.integration }} notifications"
+
+- name: targets
+  rules:
+  - alert: TargetDown
+    expr: up == 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Prometheus can't scrape {{ $labels.job }} on {{ $labels.instance }}"

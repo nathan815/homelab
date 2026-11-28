@@ -1,0 +1,45 @@
+# Alertmanager routing for the rules in ../prometheus/alerts.yml (README.md, "Alerting").
+# Secrets (Discord webhook, Pushover keys, healthchecks.io ping URL) are Docker
+# secrets read from files, filled from Komodo secret variables at deploy time.
+
+route:
+  receiver: discord
+  group_by: [alertname, instance]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  routes:
+    # Heartbeat: ping healthchecks.io every minute while the pipeline works.
+    # healthchecks.io alerts (email/push, its side) when the pings stop.
+    - receiver: healthchecks
+      matchers: ['alertname="Watchdog"']
+      group_by: ['...']
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 1m
+
+    - receiver: discord-and-pushover
+      matchers: ['severity="critical"']
+
+receivers:
+  - name: healthchecks
+    webhook_configs:
+      - url_file: /run/secrets/healthchecks_ping_url
+        send_resolved: false
+
+  - name: discord
+    discord_configs:
+      - webhook_url_file: /run/secrets/discord_webhook_url
+
+  - name: discord-and-pushover
+    discord_configs:
+      - webhook_url_file: /run/secrets/discord_webhook_url
+    pushover_configs:
+      - user_key_file: /run/secrets/pushover_user_key
+        token_file: /run/secrets/pushover_token
+        priority: '{{ if eq .Status "firing" }}1{{ else }}0{{ end }}'
+
+# A read-only disk also stops Prometheus writing: page once, for the cause.
+inhibit_rules:
+  - source_matchers: ['alertname="FilesystemReadOnly"']
+    target_matchers: ['alertname=~"PrometheusTsdbWriteFailures|PrometheusNotIngesting"']
