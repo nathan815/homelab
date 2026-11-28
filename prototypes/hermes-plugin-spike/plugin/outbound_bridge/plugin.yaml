@@ -1,0 +1,17 @@
+name: outbound_bridge
+label: Outbound Bridge
+kind: platform
+version: 0.1.0
+description: >
+  Dials OUT to a trusted-side endpoint (unix socket or TCP) and speaks
+  newline-delimited JSON. Hermes opens no listener for this platform.
+author: spike
+requires_env:
+  - name: OUTBOUND_BRIDGE_ENDPOINT
+    description: "unix:///path/to.sock or tcp://host:port of the trusted side"
+    prompt: "Endpoint"
+    password: false
+optional_env:
+  - name: OUTBOUND_BRIDGE_STREAM_MODE
+    description: "deltas (raw token deltas) or edits (gateway send+edit_message)"
+    password: false

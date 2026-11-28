@@ -1,0 +1,4 @@
+# first run only: Hermes queues inbound during startup restore, so give it time
+sleep 30
+send hello there
+wait-done 60

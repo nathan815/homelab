@@ -1,0 +1,59 @@
+# Three networks:
+#   sandbox_net  internal:true  sandbox + proxy. No route out. Proxy listens on :8080 here.
+#   egress       normal bridge  proxy only. The proxy's route to the internet.
+#   control      normal bridge  proxy only (+ host port 127.0.0.1:8081). The approval API binds
+#                               to the proxy's control-net IP ONLY, so it is not even
+#                               listening on the sandbox-facing interface.
+name: egress-proxy
+services:
+  proxy:
+    build: ./proxy
+    command: >
+      mitmdump --listen-host 0.0.0.0 --listen-port 8080
+      --set connection_strategy=lazy
+      -s /addon/addon.py
+    environment:
+      APPROVAL_TIMEOUT: ${APPROVAL_TIMEOUT:-120}
+      APPROVAL_BIND: 172.30.9.2
+      APPROVAL_PORT: "8081"
+    volumes:
+      - ca-private:/home/mitmproxy/.mitmproxy   # CA private key: proxy only
+      - ca-public:/ca-public                    # only the public cert is copied here
+      - state:/data                             # rules.json, decisions.jsonl
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      sandbox_net: {}
+      egress: {gw_priority: 100}
+      control: {ipv4_address: 172.30.9.2}
+
+  sandbox:
+    build: ./sandbox
+    depends_on: [proxy]
+    environment:
+      HTTP_PROXY: http://proxy:8080
+      HTTPS_PROXY: http://proxy:8080
+      http_proxy: http://proxy:8080
+      https_proxy: http://proxy:8080
+      SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+      NODE_EXTRA_CA_CERTS: /ca-public/mitmproxy-ca-cert.pem
+      NODE_USE_ENV_PROXY: "1"
+    volumes:
+      - ca-public:/ca-public:ro
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks:
+      - sandbox_net
+
+networks:
+  sandbox_net: {internal: true}
+  egress: {}
+  control:
+    ipam:
+      config: [{subnet: 172.30.9.0/24}]
+
+volumes:
+  ca-private:
+  ca-public:
+  state:

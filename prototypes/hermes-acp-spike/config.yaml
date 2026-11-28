@@ -1,0 +1,7 @@
+model:
+  provider: custom
+  default: mock-model
+  base_url: http://acpspike-mock:8080/v1
+  api_key: test-key
+approvals:
+  mode: manual

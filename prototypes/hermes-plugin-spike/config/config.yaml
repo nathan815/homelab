@@ -1,0 +1,21 @@
+model:
+  default: mock-model
+  provider: custom
+  base_url: http://plugspike-llm:8000/v1
+  api_key: test-key
+plugins:
+  enabled:
+    - outbound_bridge
+gateway:
+  platforms:
+    api_server:
+      enabled: false   # image auto-enables a loopback api_server from a generated API_SERVER_KEY
+    outbound_bridge:
+      enabled: true
+approvals:
+  mode: manual
+  timeout: 60
+streaming:
+  enabled: true
+display:
+  tool_progress: all
